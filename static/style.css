@@ -21,162 +21,81 @@ body {
 
 a { color: inherit; }
 
-.auth-page {
-  display: grid;
-  place-items: center;
-  padding: 32px 16px;
-  background: radial-gradient(circle at 85% 15%, rgba(201, 163, 58, .16), transparent 28%), var(--cream);
-}
-
-.auth-card {
-  width: min(440px, 100%);
-  padding: 42px;
-  background: var(--white);
-  border: 1px solid rgba(23, 23, 21, .12);
-  box-shadow: 8px 8px 0 rgba(201, 163, 58, .24);
-}
-
-.brand-mark {
-  font-size: 64px;
-  line-height: .8;
-  font-weight: 900;
-  letter-spacing: -7px;
-}
-
+.auth-page { display: grid; place-items: center; padding: 32px 16px; background: radial-gradient(circle at 85% 15%, rgba(201, 163, 58, .16), transparent 28%), var(--cream); }
+.auth-card { width: min(440px, 100%); padding: 42px; background: var(--white); border: 1px solid rgba(23, 23, 21, .12); box-shadow: 8px 8px 0 rgba(201, 163, 58, .24); }
+.brand-mark { font-size: 64px; line-height: .8; font-weight: 900; letter-spacing: -7px; }
 .brand-mark span { color: var(--gold); }
 .brand-mark.small { font-size: 42px; letter-spacing: -4px; }
 .brand-link { text-decoration: none; }
-
-.eyebrow {
-  margin: 28px 0 8px;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 3px;
-}
-
+.eyebrow { margin: 28px 0 8px; font-size: 11px; font-weight: 800; letter-spacing: 3px; }
 h1, h2 { margin: 0; font-weight: 900; letter-spacing: -1.5px; }
 h1 { font-size: clamp(38px, 7vw, 54px); }
 .subtitle { color: var(--muted); line-height: 1.5; margin: 10px 0 28px; }
-
 .auth-form { display: grid; gap: 9px; }
 .auth-form label { margin-top: 9px; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
-.auth-form input {
-  width: 100%;
-  padding: 14px;
-  border: 1px solid #aaa395;
-  background: #fff;
-  color: var(--black);
-  font-size: 16px;
-  outline: none;
-}
+.auth-form input { width: 100%; padding: 14px; border: 1px solid #aaa395; background: #fff; color: var(--black); font-size: 16px; outline: none; }
 .auth-form input:focus { border-color: var(--black); box-shadow: 3px 3px 0 var(--gold); }
-
-.primary-button, .secondary-button {
-  display: inline-block;
-  border: 1px solid var(--black);
-  padding: 14px 18px;
-  font-weight: 900;
-  cursor: pointer;
-  margin-top: 18px;
-  text-decoration: none;
-  text-align: center;
-}
+.primary-button, .secondary-button { display: inline-block; border: 1px solid var(--black); padding: 14px 18px; font-weight: 900; cursor: pointer; margin-top: 18px; text-decoration: none; text-align: center; }
 .primary-button { background: var(--red); color: white; box-shadow: 4px 4px 0 var(--black); }
 .primary-button:hover { transform: translate(2px, 2px); box-shadow: 2px 2px 0 var(--black); }
 .secondary-button { background: var(--cream); }
-.secondary-button:disabled { opacity: .55; cursor: not-allowed; }
 .mode-link { color: var(--black); }
-
 .switch-link { margin: 24px 0 0; text-align: center; font-size: 14px; color: var(--muted); }
 .switch-link a { font-weight: 900; color: var(--black); }
-
 .message { padding: 12px 14px; margin-bottom: 12px; font-size: 14px; border-left: 4px solid; }
 .message.error { background: #fbe2dd; border-color: var(--red); }
 .message.success { background: #e5efd9; border-color: #4d7433; }
-
 .dashboard-page, .game-page { min-height: 100vh; }
-.topbar {
-  max-width: 1120px;
-  margin: 0 auto;
-  padding: 22px 28px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 2px solid var(--black);
-}
+.topbar { max-width: 1120px; margin: 0 auto; padding: 22px 28px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--black); }
 .logout { font-size: 12px; font-weight: 900; text-decoration: none; }
-
 .dashboard { max-width: 1120px; margin: 0 auto; padding: 72px 28px; }
 .dashboard .eyebrow { margin-top: 0; }
 .dashboard h1 { font-size: clamp(46px, 8vw, 76px); }
 .mode-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; margin-top: 50px; }
-.mode-card {
-  min-height: 280px;
-  padding: 30px;
-  background: var(--white);
-  border: 1px solid rgba(23, 23, 21, .16);
-  position: relative;
-}
+.mode-card { min-height: 280px; padding: 30px; background: var(--white); border: 1px solid rgba(23, 23, 21, .16); position: relative; }
 .mode-card:nth-child(1) { box-shadow: 7px 7px 0 var(--gold); }
 .mode-card:nth-child(2) { box-shadow: 7px 7px 0 var(--red); }
 .mode-number, .setup-number { color: var(--red); font-size: 14px; font-weight: 900; margin-bottom: 28px; }
 .mode-card h2 { font-size: 34px; }
 .mode-card p { color: var(--muted); line-height: 1.5; max-width: 380px; }
-
 .game-shell { max-width: 980px; margin: 0 auto; padding: 64px 28px 80px; }
 .game-shell .eyebrow { margin-top: 0; }
 .game-shell h1 { font-size: clamp(44px, 7vw, 72px); }
-
 .setup-grid { display: grid; gap: 22px; margin-top: 42px; }
-.setup-card {
-  background: var(--white);
-  border: 1px solid rgba(23, 23, 21, .15);
-  padding: 28px;
-  box-shadow: 5px 5px 0 rgba(201, 163, 58, .35);
-}
+.setup-card { background: var(--white); border: 1px solid rgba(23, 23, 21, .15); padding: 28px; box-shadow: 5px 5px 0 rgba(201, 163, 58, .35); }
 .setup-card h2 { font-size: 30px; margin-bottom: 22px; }
 .choice-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
 .choice-grid.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .choice-grid.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .choice { cursor: pointer; }
 .choice input { position: absolute; opacity: 0; pointer-events: none; }
-.choice span {
-  display: block;
-  padding: 15px 12px;
-  border: 1px solid var(--black);
-  text-align: center;
-  font-weight: 900;
-  background: var(--cream);
-}
+.choice span { display: block; padding: 15px 12px; border: 1px solid var(--black); text-align: center; font-weight: 900; background: var(--cream); }
 .choice input:checked + span { background: var(--black); color: var(--white); box-shadow: 3px 3px 0 var(--red); }
 .choice span:hover { transform: translateY(-1px); }
 .start-button { width: 100%; font-size: 16px; margin-top: 4px; }
-
-.match-preview {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1px;
-  margin-top: 42px;
-  background: var(--black);
-  border: 1px solid var(--black);
-}
+.match-preview { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; margin-top: 42px; background: var(--black); border: 1px solid var(--black); }
 .match-preview > div { background: var(--white); padding: 24px; display: grid; gap: 8px; }
 .match-label { font-size: 10px; letter-spacing: 2px; font-weight: 900; color: var(--muted); }
 .match-preview strong { font-size: 24px; }
 
-.field-placeholder {
-  margin-top: 28px;
-  min-height: 430px;
-  display: grid;
-  place-items: center;
-  align-content: center;
-  gap: 14px;
-  text-align: center;
-  color: var(--white);
-  background: repeating-linear-gradient(to bottom, #337f52 0, #337f52 54px, #2d774b 54px, #2d774b 108px);
-  border: 6px solid var(--cream-deep);
-  box-shadow: 8px 8px 0 rgba(23, 23, 21, .16);
-}
+.draw-layout { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(260px, .65fr); gap: 24px; margin-top: 28px; align-items: stretch; }
+.draw-card, .draw-info { background: var(--white); border: 1px solid rgba(23, 23, 21, .15); box-shadow: 6px 6px 0 rgba(201, 163, 58, .35); }
+.draw-card { padding: 30px; text-align: center; display: flex; flex-direction: column; justify-content: center; min-height: 390px; }
+.draw-info { padding: 30px; }
+.draw-info h2 { font-size: 32px; margin-bottom: 14px; }
+.draw-info p { color: var(--muted); line-height: 1.6; margin: 0; }
+.draw-result-label { font-size: 10px; letter-spacing: 2px; font-weight: 900; color: var(--muted); }
+.dice-face { width: 92px; height: 92px; margin: 18px auto; display: grid; place-items: center; border: 2px solid var(--black); background: var(--cream); box-shadow: 5px 5px 0 var(--black); font-size: 44px; font-weight: 900; }
+.draw-empty h2 { font-size: 28px; }
+.draw-empty p { max-width: 430px; margin: 0 auto; color: var(--muted); line-height: 1.5; }
+.draw-result { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px; max-width: 520px; margin: 10px auto 0; padding: 18px; border-top: 1px solid #cfc6b1; border-bottom: 1px solid #cfc6b1; text-align: left; }
+.draw-result span { font-size: 9px; font-weight: 900; letter-spacing: 2px; color: var(--muted); }
+.draw-result strong { font-size: 19px; }
+.roll-button { width: min(520px, 100%); margin: 24px auto 0; }
+.selected-universe { display: grid; gap: 8px; margin-top: 28px; }
+.selected-universe span { padding: 12px; border-left: 4px solid var(--red); background: var(--cream); font-weight: 900; }
+
+.field-placeholder { margin-top: 28px; min-height: 430px; display: grid; place-items: center; align-content: center; gap: 14px; text-align: center; color: var(--white); background: repeating-linear-gradient(to bottom, #337f52 0, #337f52 54px, #2d774b 54px, #2d774b 108px); border: 6px solid var(--cream-deep); box-shadow: 8px 8px 0 rgba(23, 23, 21, .16); }
 .field-title { font-size: 12px; letter-spacing: 3px; font-weight: 900; }
 .field-circle { width: 120px; height: 120px; border: 2px solid rgba(255,255,255,.7); border-radius: 50%; display: grid; place-items: center; font-size: 24px; font-weight: 900; }
 .field-placeholder p { margin: 0; max-width: 380px; color: rgba(255,255,255,.85); }
@@ -195,6 +114,11 @@ h1 { font-size: clamp(38px, 7vw, 54px); }
   .choice span { padding: 9px 8px; font-size: 12px; }
   .choice input:checked + span { box-shadow: 2px 2px 0 var(--red); }
   .start-button { padding: 11px 16px; font-size: 13px; }
+  .draw-layout { grid-template-columns: 1.4fr .6fr; gap: 14px; }
+  .draw-card, .draw-info { padding: 20px; }
+  .draw-card { min-height: 320px; }
+  .draw-info h2 { font-size: 25px; }
+  .dice-face { width: 72px; height: 72px; font-size: 34px; margin: 10px auto; }
 }
 
 @media (max-width: 700px) {
@@ -203,4 +127,5 @@ h1 { font-size: clamp(38px, 7vw, 54px); }
   .dashboard, .game-shell { padding-top: 48px; }
   .choice-grid, .choice-grid.three, .choice-grid.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .match-preview { grid-template-columns: 1fr; }
+  .draw-layout { grid-template-columns: 1fr; }
 }
