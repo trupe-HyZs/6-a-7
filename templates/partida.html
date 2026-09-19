@@ -6,311 +6,34 @@
   <title>6 a 7 — Partida</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   <style>
-    .game-shell.match-shell { max-width:1120px; padding:22px 18px 50px; }
-    .game-shell .eyebrow, .game-shell > h1, .game-shell > .subtitle { display:none; }
-    .match-top { display:grid; grid-template-columns:1fr 360px; gap:8px; margin-bottom:12px; }
-    .universe-card, .score-card, .players-panel, .field-panel, .details-panel { background:var(--white); border:1px solid rgba(23,23,21,.15); }
-    .universe-card { min-height:78px; padding:14px 18px; display:flex; align-items:center; justify-content:space-between; gap:20px; }
-    .universe-main { display:flex; align-items:center; gap:14px; }
-    .crest { width:50px; height:50px; display:grid; place-items:center; font-size:34px; }
-    /* UI fixes: reroll only replaces the player picker after a player is selected. */
-    .crest { font-size:0; position:relative; }
-    .crest::before { content:'RM'; width:42px; height:46px; display:grid; place-items:center; color:#fff; background:linear-gradient(135deg,#8b0000 0 28%,#f4f4f4 28% 72%,#8b0000 72%); border:2px solid #c9a33a; clip-path:polygon(50% 0,92% 14%,84% 72%,50% 100%,16% 72%,8% 14%); font-size:11px; font-weight:900; letter-spacing:-.5px; text-shadow:0 1px 1px #000; }
-    .field-slot-form { margin:0 !important; padding:0 !important; border:0 !important; background:transparent !important; }
-    .field-slot-button, .field-slot-button:hover, .field-slot-button:focus, .field-slot-button:active { appearance:none; -webkit-appearance:none; margin:0 !important; padding:0 !important; border:0 !important; outline:none !important; background:transparent !important; box-shadow:none !important; color:inherit; }
-    .field-slot-button::-moz-focus-inner { border:0; padding:0; }
-    .players-panel { padding-bottom:11px; }
-    .players-panel .reroll-block { display:none; }
-    .match-layout:has(.details-panel .selected-player) .players-panel > .panel-heading,
-    .match-layout:has(.details-panel .selected-player) .players-panel > .search-box,
-    .match-layout:has(.details-panel .selected-player) .players-panel > .player-count,
-    .match-layout:has(.details-panel .selected-player) .players-panel > .all-players { display:none; }
-    .match-layout:has(.details-panel .selected-player) .players-panel .reroll-block { position:static; display:block; margin:0; padding-top:0; border-top:0; background:transparent; }
-    .match-layout:has(.details-panel .selected-player) .players-panel .reroll-count { margin-bottom:8px; }
-
-    .mini-label { display:block; color:var(--muted); font-size:8px; font-weight:900; letter-spacing:1.7px; text-transform:uppercase; margin-bottom:4px; }
-    .universe-name { font-size:19px; font-weight:900; }
-    .cup-name { font-size:13px; font-weight:900; }
-    .score-card { padding:11px 14px; display:grid; grid-template-columns:1fr auto; align-items:center; gap:3px 12px; }
-    .score-title { font-size:8px; letter-spacing:1.5px; font-weight:900; color:var(--muted); }
-    .score-overall { font-size:20px; font-weight:900; text-align:right; grid-row:1 / span 2; }
-    .score-lines { display:flex; gap:26px; margin-top:5px; }
-    .score-lines span { font-size:10px; font-weight:900; }
-    .score-lines .atk { color:var(--red); } .score-lines .def { color:#28749a; }
-    .match-layout { display:grid; grid-template-columns:270px minmax(440px,1fr) 285px; gap:10px; align-items:stretch; }
-    .players-panel { padding:11px; min-height:650px; position:relative; padding-bottom:112px; }
-    .panel-heading { font-size:16px; font-weight:900; margin-bottom:8px; }
-    .search-box { width:100%; border:1px solid #c9c1ae; background:var(--cream); padding:8px 9px; font-size:10px; outline:none; margin-bottom:7px; }
-    .player-count { display:flex; justify-content:space-between; align-items:center; color:var(--muted); font-size:8px; font-weight:800; margin:0 2px 6px; }
-    .all-players { max-height:520px; overflow-y:auto; padding-right:2px; display:grid; gap:2px; }
-    .player-select-form { margin:0; }
-    .player-select { width:100%; min-height:34px; border:1px solid #e0d8c6; background:var(--cream); padding:5px 6px; display:grid; grid-template-columns:18px 1fr auto 24px 12px; gap:5px; align-items:center; text-align:left; cursor:pointer; }
-    .player-select:hover:not(:disabled) { background:#eee5d1; }
-    .player-select:disabled { opacity:.36; cursor:not-allowed; }
-    .player-number { font-size:8px; font-weight:900; color:var(--red); }
-    .player-name { font-size:10px; font-weight:900; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    .player-pos { display:flex; gap:2px; }
-    .pos-tag { border:1px solid #c8c0ae; padding:2px 3px; font-size:6px; font-weight:900; color:var(--muted); background:var(--white); }
-    .player-ovr { font-size:10px; font-weight:900; }
-    .player-arrow { color:var(--muted); font-size:11px; }
-    .field-panel { padding:8px; }
-    .field-head { display:flex; justify-content:center; padding:0; height:0; overflow:hidden; }
-    .football-field { min-height:650px; }
-    .field-row.goalkeeper-row { margin-top:auto; }
-    .details-panel { padding:12px; min-height:650px; }
-    .selected-player { display:grid; grid-template-columns:58px 1fr; gap:10px; align-items:center; padding-bottom:12px; border-bottom:1px solid #d7cfbc; }
-    .player-avatar { width:58px; height:58px; display:grid; place-items:center; background:var(--cream); border:1px solid #c9c1ae; font-size:22px; font-weight:900; }
-    .selected-name { font-size:15px; font-weight:900; line-height:1.05; }
-    .selected-meta { font-size:8px; color:var(--muted); font-weight:800; margin-top:5px; }
-    .selected-overall { font-size:18px; font-weight:900; margin-top:4px; }
-    .selected-positions { display:flex; gap:5px; margin:10px 0 14px; }
-    .position-choice { border:1px solid #c9c1ae; background:var(--cream); padding:6px 14px; font-size:9px; font-weight:900; }
-    .position-choice.active { background:var(--black); color:var(--white); }
-    .box-title { color:var(--muted); font-size:8px; letter-spacing:1.5px; font-weight:900; margin:14px 0 7px; }
-    .team-box { width:100%; border-collapse:collapse; font-size:8px; }
-    .team-box th { text-align:left; color:var(--muted); font-size:7px; padding:5px 3px; border-bottom:1px solid #d7cfbc; }
-    .team-box td { padding:6px 3px; border-bottom:1px solid #eee8d9; }
-    .team-box td:last-child, .team-box th:last-child { text-align:right; font-weight:900; }
-    .team-box .occupied { color:var(--black); font-weight:900; }
-    .team-box .empty { color:#aaa398; }
-    .reroll-block { position:absolute; left:11px; right:11px; bottom:11px; padding-top:9px; border-top:1px solid #d7cfbc; background:var(--white); }
-    .reroll-count { display:block; color:var(--muted); text-align:left; font-size:8px; font-weight:800; margin-bottom:5px; }
-    .reroll-form { margin:0; }
-    .reroll-form .secondary-button { width:100%; margin:0; padding:8px; font-size:8px; }
-    .reroll-actions { display:grid; grid-template-columns:1fr 1fr; gap:5px; margin-top:5px; }
-    .reroll-actions .secondary-button { margin:0; padding:7px 3px; font-size:7px; }
-    .empty-selection { padding:18px 8px; text-align:center; border:1px dashed #c9c1ae; background:var(--cream); color:var(--muted); font-size:9px; line-height:1.5; }
-
-    .real-die { width:86px; height:86px; margin:0 auto 20px; padding:11px; display:grid; grid-template-columns:repeat(3,1fr); grid-template-rows:repeat(3,1fr); gap:5px; border:2px solid var(--black); border-radius:14px; background:linear-gradient(145deg,#fffdf7,#e8dfca); box-shadow:6px 6px 0 var(--black), inset 2px 2px 5px rgba(255,255,255,.8), inset -3px -3px 6px rgba(0,0,0,.12); transform-style:preserve-3d; }
-    .die-pip { width:12px; height:12px; border-radius:50%; background:var(--black); place-self:center; box-shadow:inset 1px 1px 2px rgba(255,255,255,.22); }
-    .draw-die { width:86px; height:86px; margin:0 auto 20px; padding:11px; display:grid; grid-template-columns:repeat(3,1fr); grid-template-rows:repeat(3,1fr); gap:5px; border:2px solid var(--black); border-radius:14px; background:linear-gradient(145deg,#fffdf7,#e8dfca); box-shadow:6px 6px 0 var(--black), inset 2px 2px 5px rgba(255,255,255,.8), inset -3px -3px 6px rgba(0,0,0,.12); }
-    .draw-die.rolling { animation:dieRoll .24s infinite alternate; }
-    .draw-title { font-size:28px; font-weight:900; margin:0; }
-    .draw-subtitle { color:var(--muted); font-size:11px; margin:10px auto 24px; max-width:430px; line-height:1.5; }
-    .draw-button { width:100%; border:0; background:var(--red); color:var(--white); padding:14px; font-size:10px; font-weight:900; letter-spacing:.5px; cursor:pointer; box-shadow:4px 4px 0 var(--black); }
-    .draw-button:hover { transform:translate(-1px,-1px); }
-    .draw-button:active { transform:translate(2px,2px); box-shadow:2px 2px 0 var(--black); }
-    .draw-result { min-height:86px; display:grid; place-items:center; margin:8px auto 22px; padding:16px; border:1px solid #d7cfbc; background:var(--cream); }
-    .draw-result .draw-selection { font-size:22px; font-weight:900; }
-    .draw-result .draw-cup { display:block; color:var(--muted); font-size:10px; font-weight:800; margin-top:5px; }
-    .draw-overlay { position:fixed; inset:0; z-index:9999; display:none; place-items:center; background:rgba(23,23,21,.72); backdrop-filter:blur(3px); }
-    .draw-overlay.active { display:grid; }
-    .draw-overlay-card { width:min(520px,calc(100% - 36px)); background:var(--cream); border:2px solid var(--black); padding:34px 28px; text-align:center; box-shadow:9px 9px 0 var(--black); }
-    .draw-spinner { width:76px; height:76px; margin:0 auto 20px; padding:9px; display:grid; grid-template-columns:repeat(3,1fr); grid-template-rows:repeat(3,1fr); gap:4px; border:2px solid var(--black); border-radius:13px; background:linear-gradient(145deg,#fffdf7,#e8dfca); box-shadow:6px 6px 0 var(--black); }
-    .draw-spinner.rolling { animation:dieRoll .16s infinite alternate; }
-    .draw-overlay-label { font-size:9px; letter-spacing:2px; font-weight:900; color:var(--red); text-transform:uppercase; }
-    .draw-overlay-title { font-size:26px; font-weight:900; margin:8px 0 5px; }
-    .draw-overlay-selection { min-height:48px; font-size:18px; font-weight:900; }
-    .draw-overlay-cup { color:var(--muted); font-size:10px; margin-top:4px; }
-    .draw-dots::after { content:'...'; animation:dots 1s steps(4,end) infinite; }
-    @keyframes dieRoll { from { transform:rotate(-10deg) translate(-2px,-2px) scale(.96); } to { transform:rotate(10deg) translate(2px,2px) scale(1.04); } }
-    @keyframes dots { 0% { content:''; } 25% { content:'.'; } 50% { content:'..'; } 75%,100% { content:'...'; } }
-    @media (max-width:1000px) { .match-layout { grid-template-columns:240px minmax(360px,1fr); } .details-panel { grid-column:1 / -1; min-height:auto; } .match-top { grid-template-columns:1fr 300px; } .reroll-block { position:static; margin-top:12px; } .players-panel { padding-bottom:11px; } }
-    @media (max-width:720px) { .match-top, .match-layout { grid-template-columns:1fr; } .players-panel,.details-panel { min-height:auto; } .football-field { min-height:540px; } .reroll-block { position:static; } .players-panel { padding-bottom:11px; } .draw-screen { min-height:540px; } }
+    .crest{width:52px;height:52px;display:grid;place-items:center}.crest img{width:48px;height:48px;object-fit:contain;display:block}.field-slot-form{margin:0!important;padding:0!important;border:0!important;background:transparent!important}.field-slot-button,.field-slot-button:hover,.field-slot-button:focus,.field-slot-button:active{appearance:none;-webkit-appearance:none;margin:0!important;padding:0!important;border:0!important;outline:none!important;background:transparent!important;box-shadow:none!important;color:inherit}.field-slot-button::-moz-focus-inner{border:0;padding:0}.players-panel .reroll-block{display:none}.match-layout:has(.details-panel .selected-player) .players-panel>.panel-heading,.match-layout:has(.details-panel .selected-player) .players-panel>.search-box,.match-layout:has(.details-panel .selected-player) .players-panel>.player-count,.match-layout:has(.details-panel .selected-player) .players-panel>.all-players{display:none}.match-layout:has(.details-panel .selected-player) .players-panel .reroll-block{position:static;display:block;margin:0;padding-top:0;border-top:0;background:transparent}.mini-label{display:block;color:var(--muted);font-size:8px;font-weight:900;letter-spacing:1.7px;text-transform:uppercase;margin-bottom:4px}.universe-name{font-size:19px;font-weight:900}.cup-name{font-size:13px;font-weight:900}.universe-card,.score-card,.players-panel,.field-panel,.details-panel{background:var(--white);border:1px solid rgba(23,23,21,.15)}.universe-card{min-height:78px;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;gap:20px}.universe-main{display:flex;align-items:center;gap:14px}.score-card{padding:11px 14px;display:grid;grid-template-columns:1fr auto;align-items:center;gap:3px 12px}.score-title{font-size:8px;letter-spacing:1.5px;font-weight:900;color:var(--muted)}.score-overall{font-size:20px;font-weight:900;text-align:right;grid-row:1/span 2}.score-lines{display:flex;gap:26px;margin-top:5px}.score-lines span{font-size:10px;font-weight:900}.score-lines .atk{color:var(--red)}.score-lines .def{color:#28749a}.match-shell{max-width:1120px;padding:22px 18px 50px}.match-top{display:grid;grid-template-columns:1fr 360px;gap:8px;margin-bottom:12px}.match-layout{display:grid;grid-template-columns:270px minmax(440px,1fr) 285px;gap:10px;align-items:stretch}.players-panel{padding:11px;min-height:650px;position:relative;padding-bottom:11px}.panel-heading{font-size:16px;font-weight:900;margin-bottom:8px}.search-box{width:100%;border:1px solid #c9c1ae;background:var(--cream);padding:8px 9px;font-size:10px;outline:none;margin-bottom:7px}.player-count{display:flex;justify-content:space-between;color:var(--muted);font-size:8px;font-weight:800;margin:0 2px 6px}.all-players{max-height:520px;overflow-y:auto;padding-right:2px;display:grid;gap:2px}.player-select-form{margin:0}.player-select{width:100%;min-height:34px;border:1px solid #e0d8c6;background:var(--cream);padding:5px 6px;display:grid;grid-template-columns:18px 1fr auto 24px 12px;gap:5px;align-items:center;text-align:left;cursor:pointer}.player-select:hover:not(:disabled){background:#eee5d1}.player-select:disabled{opacity:.36;cursor:not-allowed}.player-number{font-size:8px;font-weight:900;color:var(--red)}.player-name{font-size:10px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.player-pos{display:flex;gap:2px}.pos-tag{border:1px solid #c8c0ae;padding:2px 3px;font-size:6px;font-weight:900;color:var(--muted);background:var(--white)}.player-ovr{font-size:10px;font-weight:900}.player-arrow{color:var(--muted);font-size:11px}.field-panel{padding:8px}.football-field{min-height:650px}.field-row.goalkeeper-row{margin-top:auto}.details-panel{padding:12px;min-height:650px}.selected-player{display:grid;grid-template-columns:58px 1fr;gap:10px;align-items:center;padding-bottom:12px;border-bottom:1px solid #d7cfbc}.player-avatar{width:58px;height:58px;display:grid;place-items:center;background:var(--cream);border:1px solid #c9c1ae;font-size:22px;font-weight:900}.selected-name{font-size:15px;font-weight:900;line-height:1.05}.selected-meta{font-size:8px;color:var(--muted);font-weight:800;margin-top:5px}.selected-overall{font-size:18px;font-weight:900;margin-top:4px}.selected-positions{display:flex;gap:5px;margin:10px 0 14px}.position-choice{border:1px solid #c9c1ae;background:var(--cream);padding:6px 14px;font-size:9px;font-weight:900}.position-choice.active{background:var(--black);color:var(--white)}.box-title{color:var(--muted);font-size:8px;letter-spacing:1.5px;font-weight:900;margin:14px 0 7px}.team-box{width:100%;border-collapse:collapse;font-size:8px}.team-box th{text-align:left;color:var(--muted);font-size:7px;padding:5px 3px;border-bottom:1px solid #d7cfbc}.team-box td{padding:6px 3px;border-bottom:1px solid #eee8d9}.team-box td:last-child,.team-box th:last-child{text-align:right;font-weight:900}.team-box .occupied{color:var(--black);font-weight:900}.team-box .empty{color:#aaa398}.reroll-block{position:absolute;left:11px;right:11px;bottom:11px;padding-top:9px;border-top:1px solid #d7cfbc;background:var(--white)}.reroll-count{display:block;color:var(--muted);text-align:left;font-size:8px;font-weight:800;margin-bottom:5px}.reroll-form{margin:0}.reroll-form .secondary-button{width:100%;margin:0;padding:8px;font-size:8px}.reroll-actions{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:5px}.reroll-actions .secondary-button{margin:0;padding:7px 3px;font-size:7px}.empty-selection{padding:18px 8px;text-align:center;border:1px dashed #c9c1ae;background:var(--cream);color:var(--muted);font-size:9px;line-height:1.5}.real-die{width:86px;height:86px;margin:0 auto 20px;padding:11px;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);gap:5px;border:2px solid var(--black);border-radius:14px;background:linear-gradient(145deg,#fffdf7,#e8dfca);box-shadow:6px 6px 0 var(--black),inset 2px 2px 5px rgba(255,255,255,.8),inset -3px -3px 6px rgba(0,0,0,.12)}.die-pip{width:12px;height:12px;border-radius:50%;background:var(--black);place-self:center}.draw-title{font-size:28px;font-weight:900;margin:0}.draw-subtitle{color:var(--muted);font-size:11px;margin:10px auto 24px;max-width:430px;line-height:1.5}.draw-button{width:100%;border:0;background:var(--red);color:var(--white);padding:14px;font-size:10px;font-weight:900;cursor:pointer}.draw-result{min-height:86px;display:grid;place-items:center;margin:8px auto 22px;padding:16px;border:1px solid #d7cfbc;background:var(--cream)}.draw-selection{font-size:22px;font-weight:900}.draw-cup{display:block;color:var(--muted);font-size:10px;font-weight:800;margin-top:5px}.draw-overlay{position:fixed;inset:0;z-index:9999;display:none;place-items:center;background:rgba(23,23,21,.72);backdrop-filter:blur(3px)}.draw-overlay.active{display:grid}.draw-overlay-card{width:min(520px,calc(100% - 36px));background:var(--cream);border:2px solid var(--black);padding:34px 28px;text-align:center;box-shadow:9px 9px 0 var(--black)}.draw-spinner{width:76px;height:76px;margin:0 auto 20px;padding:9px;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);gap:4px;border:2px solid var(--black);border-radius:13px;background:linear-gradient(145deg,#fffdf7,#e8dfca);box-shadow:6px 6px 0 var(--black)}.draw-spinner.rolling{animation:dieRoll .16s infinite alternate}.draw-overlay-label{font-size:9px;letter-spacing:2px;font-weight:900;color:var(--red);text-transform:uppercase}.draw-overlay-title{font-size:26px;font-weight:900;margin:8px 0 5px}.draw-overlay-selection{min-height:48px;font-size:18px;font-weight:900}.draw-overlay-cup{color:var(--muted);font-size:10px;margin-top:4px}@keyframes dieRoll{from{transform:rotate(-10deg) translate(-2px,-2px) scale(.96)}to{transform:rotate(10deg) translate(2px,2px) scale(1.04)}}@media(max-width:1000px){.match-layout{grid-template-columns:240px minmax(360px,1fr)}.details-panel{grid-column:1/-1;min-height:auto}.match-top{grid-template-columns:1fr 300px}}@media(max-width:720px){.match-top,.match-layout{grid-template-columns:1fr}.players-panel,.details-panel{min-height:auto}.football-field{min-height:540px}}
   </style>
 </head>
 <body class="game-page">
   <main class="game-shell match-shell">
-    {% set bandeiras = {'Brasil':'🇧🇷','Argentina':'🇦🇷','França':'🇫🇷','Alemanha':'🇩🇪','Espanha':'🇪🇸','Itália':'🇮🇹','Portugal':'🇵🇹','Inglaterra':'🏴','Uruguai':'🇺🇾','Holanda':'🇳🇱','Croácia':'🇭🇷','Bélgica':'🇧🇪'} %}
+    {% set escudos = {'Brasil':'https://upload.wikimedia.org/wikipedia/commons/1/17/Brazilian_Football_Confederation_logo.svg','Argentina':'https://upload.wikimedia.org/wikipedia/commons/c/c9/Asociaci%C3%B3n_del_F%C3%BAtbol_Argentino_%28crest%29.svg','França':'https://upload.wikimedia.org/wikipedia/commons/8/8d/France_national_football_team_seal.svg','Alemanha':'https://upload.wikimedia.org/wikipedia/commons/e/e3/DFB-Logo_2023.svg','Espanha':'https://upload.wikimedia.org/wikipedia/commons/1/13/Spanish_Football_Federation.svg','Itália':'https://upload.wikimedia.org/wikipedia/commons/6/6d/FIGC_Logo_2017.svg','Portugal':'https://upload.wikimedia.org/wikipedia/commons/5/5c/Portugal_football_federation.svg','Inglaterra':'https://upload.wikimedia.org/wikipedia/commons/6/6d/England_crest_2009.svg','Uruguai':'https://upload.wikimedia.org/wikipedia/commons/f/fe/Uruguay_national_football_team_seal.svg','Holanda':'https://upload.wikimedia.org/wikipedia/commons/0/0f/Royal_Netherlands_Football_Association_logo.svg','Croácia':'https://upload.wikimedia.org/wikipedia/commons/1/1b/Croatian_Football_Federation_logo.svg','Bélgica':'https://upload.wikimedia.org/wikipedia/commons/4/45/Royal_Belgian_Football_Association_logo.svg'} %}
     {% set score = namespace(total=0, attack=0, defense=0, count=0) %}
-    {% for j in jogadores %}
-      {% if j.escolhido %}
-        {% set ov = 96 - ((loop.index0 * 3) % 13) %}
-        {% set score.total = score.total + ov %}
-        {% set score.count = score.count + 1 %}
-        {% if j.posicoes[0] in ['GOL','LE','LD','ZAG','VOL'] %}
-          {% set score.defense = score.defense + (ov - 10) %}
-        {% else %}
-          {% set score.attack = score.attack + (ov - 60) %}
-        {% endif %}
-      {% endif %}
-    {% endfor %}
-    {% set team_ovr = (score.total // score.count) if score.count else 0 %}
-
+    {% for j in jogadores %}{% if j.escolhido %}{% set ov=96-((loop.index0*3)%13) %}{% set score.total=score.total+ov %}{% set score.count=score.count+1 %}{% if j.posicoes[0] in ['GOL','LE','LD','ZAG','VOL'] %}{% set score.defense=score.defense+(ov-10) %}{% else %}{% set score.attack=score.attack+(ov-60) %}{% endif %}{% endif %}{% endfor %}
+    {% set team_ovr=(score.total//score.count) if score.count else 0 %}
     {% if sorteio %}
-      <section class="match-top">
-        <div class="universe-card">
-          <div><span class="mini-label">SELEÇÃO</span><div class="universe-name">{{ sorteio.selecao }}</div></div>
-          <div class="universe-main"><div class="crest">{{ bandeiras.get(sorteio.selecao, '⚽') }}</div></div>
-          <div><span class="mini-label">COPA</span><div class="cup-name">{{ sorteio.copa }}</div></div>
-        </div>
-        <div class="score-card">
-          <div><span class="score-title">BOX SCORE · {{ score.count }}/11</span><div class="score-lines"><span class="atk">{{ score.attack if score.attack else 0 }} ATAQUE</span><span class="def">{{ score.defense if score.defense else 0 }} DEFESA</span></div></div>
-          <div class="score-overall">{{ team_ovr }}</div>
-        </div>
-      </section>
-
+      <section class="match-top"><div class="universe-card"><div><span class="mini-label">SELEÇÃO</span><div class="universe-name">{{ sorteio.selecao }}</div></div><div class="universe-main"><div class="crest"><img src="{{ escudos.get(sorteio.selecao,'') }}" alt="Escudo da seleção {{ sorteio.selecao }}"></div></div><div><span class="mini-label">COPA</span><div class="cup-name">{{ sorteio.copa }}</div></div></div><div class="score-card"><div><span class="score-title">BOX SCORE · {{ score.count }}/11</span><div class="score-lines"><span class="atk">{{ score.attack }} ATAQUE</span><span class="def">{{ score.defense }} DEFESA</span></div></div><div class="score-overall">{{ team_ovr }}</div></div></section>
       <section class="match-layout">
-        <aside class="players-panel">
-          <div class="panel-heading">ESCOLHA UM JOGADOR</div>
-          <input class="search-box" type="search" placeholder="⌕ Buscar jogador..." oninput="filtrarJogadores(this.value)">
-          <div class="player-count"><span>JOGADORES DISPONÍVEIS</span><span>{{ jogadores|length - score.count }}/{{ jogadores|length }}</span></div>
-          <div class="all-players" id="player-list">
-            {% for jogador in jogadores %}
-              {% set ov = 96 - ((loop.index0 * 3) % 13) %}
-              <form class="player-select-form player-item" method="post" data-name="{{ jogador.nome|lower }}">
-                <input type="hidden" name="acao" value="selecionar_jogador">
-                <input type="hidden" name="jogador" value="{{ jogador.id }}">
-                <button class="player-select" type="submit" {% if jogador.escolhido or not jogador.tem_posicao_livre %}disabled{% endif %}>
-                  <span class="player-number">{{ loop.index }}</span><span class="player-name">{{ jogador.nome.split(' — ')[-1] }}</span>
-                  <span class="player-pos">{% for pos in jogador.posicoes %}<span class="pos-tag">{{ pos }}</span>{% endfor %}</span><span class="player-ovr">{{ ov }}</span><span class="player-arrow">›</span>
-                </button>
-              </form>
-            {% endfor %}
-          </div>
-
-          {% if not completo %}
-            <div class="reroll-block">
-              <span class="reroll-count">Não curtiu? Re-sorteie · {{ 3 - rolagens_manuais }} restantes</span>
-              <form method="post" class="reroll-form draw-trigger"><input type="hidden" name="acao" value="sortear"><button class="secondary-button" type="submit" {% if rolagens_manuais >= 3 %}disabled{% endif %}>↻ ROLAR NOVAMENTE</button></form>
-              <div class="reroll-actions">
-                <form method="post" class="draw-trigger"><input type="hidden" name="acao" value="sortear"><button class="secondary-button" type="submit" {% if rolagens_manuais >= 3 %}disabled{% endif %}>↻ Outra seleção</button></form>
-                <form method="post" class="draw-trigger"><input type="hidden" name="acao" value="sortear"><button class="secondary-button" type="submit" {% if rolagens_manuais >= 3 %}disabled{% endif %}>↻ Outra Copa</button></form>
-              </div>
-            </div>
-          {% endif %}
-        </aside>
-
-        <div class="field-panel">
-          <div class="football-field">
-            <div class="field-lines"></div>
-            {% for linha in linhas_campo %}
-              <div class="field-row {% if linha and linha[0].codigo == 'GOL' %}goalkeeper-row{% endif %} row-{{ loop.index }} count-{{ linha|length }}">
-                {% for pos in linha %}
-                  {% set compatível = jogador_selecionado and pos.codigo in jogador_selecionado.posicoes %}
-                  {% if jogador_selecionado and not pos.jogador and compatível %}
-                    <form class="field-slot-form draw-trigger" method="post"><input type="hidden" name="acao" value="escolher"><input type="hidden" name="posicao" value="{{ pos.key }}"><button class="field-slot-button" type="submit" title="Colocar em {{ pos.codigo }}"><span class="slot-circle">{{ pos.codigo }}</span><span class="slot-name">?</span></button></form>
-                  {% elif jogador_selecionado and not pos.jogador %}
-                    <button class="field-slot-button incompatible" type="button" disabled><span class="slot-circle">{{ pos.codigo }}</span><span class="slot-name">?</span></button>
-                  {% else %}
-                    <div class="player-slot {% if pos.jogador %}filled{% endif %}"><span class="slot-circle">{{ pos.codigo }}</span><span class="slot-name">{% if pos.jogador %}{% set escolhido = jogadores|selectattr('id', 'equalto', pos.jogador)|list %}{% if escolhido %}{{ escolhido[0].nome.split(' — ')[-1] }}{% else %}{{ pos.jogador }}{% endif %}{% else %}?{% endif %}</span></div>
-                  {% endif %}
-                {% endfor %}
-              </div>
-            {% endfor %}
-          </div>
-        </div>
-
-        <aside class="details-panel">
-          {% if jogador_selecionado %}
-            {% set selected_ov = 96 - ((jogadores.index(jogador_selecionado) * 3) % 13) %}
-            <div class="selected-player"><div class="player-avatar">{{ jogador_selecionado.nome.split(' — ')[-1][0] }}</div><div><div class="selected-name">{{ jogador_selecionado.nome.split(' — ')[-1] }}</div><div class="selected-meta">{{ bandeiras.get(sorteio.selecao, '⚽') }} {{ jogador_selecionado.posicoes|join(' / ') }}</div><div class="selected-overall">Overall {{ selected_ov }}</div></div></div>
-            <div class="selected-positions">{% for pos in jogador_selecionado.posicoes %}<span class="position-choice {% if loop.first %}active{% endif %}">{{ pos }}</span>{% endfor %}</div>
-          {% else %}
-            <div class="empty-selection">Selecione um jogador na lista ao lado.<br>Depois clique na posição compatível dentro do campo.</div>
-          {% endif %}
-
-          <div class="box-title">BOX SCORE DO TIME</div>
-          <table class="team-box"><thead><tr><th>POSIÇÃO</th><th>JOGADOR</th><th>OVR</th></tr></thead><tbody>
-            {% for pos in posicoes %}
-              <tr><td><strong>{{ pos.codigo }}</strong></td><td class="{% if pos.jogador %}occupied{% else %}empty{% endif %}">{% if pos.jogador %}{% set escolhido = jogadores|selectattr('id', 'equalto', pos.jogador)|list %}{% if escolhido %}{{ escolhido[0].nome.split(' — ')[-1] }}{% else %}{{ pos.jogador }}{% endif %}{% else %}—{% endif %}</td><td>{% if pos.jogador %}{% set escolhido = jogadores|selectattr('id', 'equalto', pos.jogador)|list %}{% if escolhido %}{{ 96 - ((jogadores.index(escolhido[0]) * 3) % 13) }}{% endif %}{% else %}—{% endif %}</td></tr>
-            {% endfor %}
-          </tbody></table>
-        </aside>
+        <aside class="players-panel"><div class="panel-heading">ESCOLHA UM JOGADOR</div><input class="search-box" type="search" placeholder="⌕ Buscar jogador..." oninput="filtrarJogadores(this.value)"><div class="player-count"><span>JOGADORES</span><span>{{ jogadores|length - score.count }}/{{ jogadores|length }}</span></div><div class="all-players" id="player-list">{% for jogador in jogadores %}{% set ov=96-((loop.index0*3)%13) %}<form class="player-select-form player-item" method="post" data-name="{{ jogador.nome|lower }}"><input type="hidden" name="acao" value="selecionar_jogador"><input type="hidden" name="jogador" value="{{ jogador.id }}"><button class="player-select" type="submit" {% if jogador.escolhido or not jogador.tem_posicao_livre %}disabled{% endif %}><span class="player-number">{{ loop.index }}</span><span class="player-name">{{ jogador.nome.split(' — ')[-1] }}</span><span class="player-pos">{% for pos in jogador.posicoes %}<span class="pos-tag">{{ pos }}</span>{% endfor %}</span><span class="player-ovr">{{ ov }}</span><span class="player-arrow">›</span></button></form>{% endfor %}</div>{% if not completo %}<div class="reroll-block"><span class="reroll-count">Não curtiu? Re-sorteie · {{ 3-rolagens_manuais }} restantes</span><form method="post" class="reroll-form draw-trigger"><input type="hidden" name="acao" value="sortear"><button class="secondary-button" type="submit" {% if rolagens_manuais>=3 %}disabled{% endif %}>↻ ROLAR NOVAMENTE</button></form></div>{% endif %}</aside>
+        <div class="field-panel"><div class="football-field"><div class="field-lines"></div>{% for linha in linhas_campo %}<div class="field-row {% if linha and linha[0].codigo=='GOL' %}goalkeeper-row{% endif %} row-{{ loop.index }} count-{{ linha|length }}">{% for pos in linha %}{% set comp=jogador_selecionado and pos.codigo in jogador_selecionado.posicoes %}{% if jogador_selecionado and not pos.jogador and comp %}<form class="field-slot-form draw-trigger" method="post"><input type="hidden" name="acao" value="escolher"><input type="hidden" name="posicao" value="{{ pos.key }}"><button class="field-slot-button" type="submit"><span class="slot-circle">{{ pos.codigo }}</span><span class="slot-name">?</span></button></form>{% elif jogador_selecionado and not pos.jogador %}<button class="field-slot-button incompatible" type="button" disabled><span class="slot-circle">{{ pos.codigo }}</span><span class="slot-name">?</span></button>{% else %}<div class="player-slot {% if pos.jogador %}filled{% endif %}"><span class="slot-circle">{{ pos.codigo }}</span><span class="slot-name">{% if pos.jogador %}{% set e=jogadores|selectattr('id','equalto',pos.jogador)|list %}{% if e %}{{ e[0].nome.split(' — ')[-1] }}{% else %}{{ pos.jogador }}{% endif %}{% else %}?{% endif %}</span></div>{% endif %}{% endfor %}</div>{% endfor %}</div></div>
+        <aside class="details-panel">{% if jogador_selecionado %}{% set selected_ov=96-((jogadores.index(jogador_selecionado)*3)%13) %}<div class="selected-player"><div class="player-avatar">{{ jogador_selecionado.nome.split(' — ')[-1][0] }}</div><div><div class="selected-name">{{ jogador_selecionado.nome.split(' — ')[-1] }}</div><div class="selected-meta">{{ jogador_selecionado.posicoes|join(' / ') }}</div><div class="selected-overall">Overall {{ selected_ov }}</div></div></div><div class="selected-positions">{% for p in jogador_selecionado.posicoes %}<span class="position-choice {% if loop.first %}active{% endif %}">{{ p }}</span>{% endfor %}</div>{% else %}<div class="empty-selection">Selecione um jogador na lista ao lado.<br>Depois clique na posição compatível dentro do campo.</div>{% endif %}<div class="box-title">BOX SCORE DO TIME</div><table class="team-box"><thead><tr><th>POSIÇÃO</th><th>JOGADOR</th><th>OVR</th></tr></thead><tbody>{% for pos in posicoes %}<tr><td><strong>{{ pos.codigo }}</strong></td><td class="{% if pos.jogador %}occupied{% else %}empty{% endif %}">{% if pos.jogador %}{% set e=jogadores|selectattr('id','equalto',pos.jogador)|list %}{% if e %}{{ e[0].nome.split(' — ')[-1] }}{% else %}{{ pos.jogador }}{% endif %}{% else %}—{% endif %}</td><td>—</td></tr>{% endfor %}</tbody></table></aside>
       </section>
     {% else %}
-      <section class="draw-screen">
-        <div class="draw-card">
-          <div class="draw-kicker">NOVA RODADA</div>
-          <div class="real-die" id="idle-die" aria-label="Dado"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
-          <h1 class="draw-title">Pronto para sortear?</h1>
-          <p class="draw-subtitle">Role o dado para descobrir a seleção e a Copa que vão entrar nesta rodada.</p>
-          <div class="draw-result" id="idle-result"><div><div class="draw-selection">?</div><span class="draw-cup">Aguardando o sorteio</span></div></div>
-          <form method="post" class="draw-trigger"><input type="hidden" name="acao" value="sortear"><button class="draw-button" type="submit">ROLAR O DADO →</button></form>
-        </div>
-      </section>
+      <section class="draw-screen"><div class="draw-card"><div class="draw-kicker">NOVA RODADA</div><div class="real-die" id="idle-die"></div><h1 class="draw-title">Pronto para sortear?</h1><p class="draw-subtitle">Role o dado para descobrir a seleção e a Copa que vão entrar nesta rodada.</p><div class="draw-result"><div><div class="draw-selection">?</div><span class="draw-cup">Aguardando o sorteio</span></div></div><form method="post" class="draw-trigger"><input type="hidden" name="acao" value="sortear"><button class="draw-button" type="submit">ROLAR O DADO →</button></form></div></section>
     {% endif %}
   </main>
-
-  <div class="draw-overlay" id="draw-overlay" aria-hidden="true">
-    <div class="draw-overlay-card">
-      <div class="draw-spinner" id="draw-spinner"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
-      <div class="draw-overlay-label">SORTEANDO<span class="draw-dots"></span></div>
-      <div class="draw-overlay-title">Descobrindo a rodada</div>
-      <div class="draw-overlay-selection" id="draw-overlay-selection">Brasil</div>
-      <div class="draw-overlay-cup" id="draw-overlay-cup">Copa 2002</div>
-    </div>
-  </div>
-
+  <div class="draw-overlay" id="draw-overlay"><div class="draw-overlay-card"><div class="draw-spinner" id="draw-spinner"></div><div class="draw-overlay-label">SORTEANDO...</div><div class="draw-overlay-title">Descobrindo a rodada</div><div class="draw-overlay-selection" id="draw-overlay-selection">Brasil</div><div class="draw-overlay-cup" id="draw-overlay-cup">Copa 2002</div></div></div>
   <script>
-    const sorteiosAnimacao = [
-      ['Brasil','Copa 2002'], ['França','Copa 1998'], ['Argentina','Copa 1986'],
-      ['Itália','Copa 2006'], ['Alemanha','Copa 2014'], ['Portugal','Copa 1966'],
-      ['Holanda','Copa 1974'], ['Croácia','Copa 2018'], ['Bélgica','Copa 1986'],
-      ['Espanha','Copa 2010'], ['Inglaterra','Copa 1966'], ['Uruguai','Copa 1950']
-    ];
-    const faces = {
-      1:[4], 2:[0,8], 3:[0,4,8], 4:[0,2,6,8], 5:[0,2,4,6,8], 6:[0,2,3,5,6,8]
-    };
-    let animacaoRodando = false;
-
-    function filtrarJogadores(valor){
-      const termo=valor.toLowerCase().trim();
-      document.querySelectorAll('.player-item').forEach(item=>{
-        item.style.display=item.dataset.name.includes(termo)?'':'none';
-      });
-    }
-
-    function renderDie(element, value) {
-      if (!element) return;
-      element.innerHTML = '';
-      const active = faces[value] || [];
-      for (let i=0;i<9;i++) {
-        const pip = document.createElement('span');
-        if (active.includes(i)) pip.className = 'die-pip';
-        element.appendChild(pip);
-      }
-    }
-
-    function iniciarSuspense(form) {
-      if (animacaoRodando) return;
-      animacaoRodando = true;
-      const overlay = document.getElementById('draw-overlay');
-      const selection = document.getElementById('draw-overlay-selection');
-      const cup = document.getElementById('draw-overlay-cup');
-      const spinner = document.getElementById('draw-spinner');
-      const button = form.querySelector('button[type="submit"]');
-      if (button) button.disabled = true;
-      overlay.classList.add('active');
-      overlay.setAttribute('aria-hidden','false');
-      spinner.classList.add('rolling');
-
-      let index = Math.floor(Math.random() * sorteiosAnimacao.length);
-      let velocidade = 90;
-      let passos = 0;
-      const totalPassos = 24 + Math.floor(Math.random() * 9);
-
-      function proximo() {
-        const item = sorteiosAnimacao[index % sorteiosAnimacao.length];
-        const face = 1 + Math.floor(Math.random() * 6);
-        selection.textContent = item[0];
-        cup.textContent = item[1];
-        renderDie(spinner, face);
-        passos++;
-        index += 1 + Math.floor(Math.random() * 2);
-
-        if (passos >= totalPassos) {
-          selection.textContent = 'SAIU!';
-          cup.textContent = `${item[0]} · ${item[1]}`;
-          renderDie(spinner, face);
-          spinner.classList.remove('rolling');
-          setTimeout(() => form.submit(), 650);
-          return;
-        }
-
-        velocidade = Math.min(260, velocidade + 7);
-        setTimeout(proximo, velocidade);
-      }
-      proximo();
-    }
-
-    renderDie(document.getElementById('idle-die'), 5);
-    document.querySelectorAll('.draw-trigger').forEach(form => {
-      form.addEventListener('submit', function(event) {
-        event.preventDefault();
-        iniciarSuspense(this);
-      });
-    });
+    const sorteiosAnimacao=[['Brasil','Copa 2002'],['França','Copa 1998'],['Argentina','Copa 1986'],['Itália','Copa 2006'],['Alemanha','Copa 2014'],['Portugal','Copa 1966'],['Holanda','Copa 1974'],['Croácia','Copa 2018'],['Bélgica','Copa 1986'],['Espanha','Copa 2010'],['Inglaterra','Copa 1966'],['Uruguai','Copa 1950']];
+    const faces={1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};let animacaoRodando=false;
+    function filtrarJogadores(v){const t=v.toLowerCase().trim();document.querySelectorAll('.player-item').forEach(i=>i.style.display=i.dataset.name.includes(t)?'':'none')}
+    function renderDie(el,v){if(!el)return;el.innerHTML='';(faces[v]||[]).forEach(()=>{});for(let i=0;i<9;i++){const p=document.createElement('span');if((faces[v]||[]).includes(i))p.className='die-pip';el.appendChild(p)}}
+    function iniciarSuspense(form){if(animacaoRodando)return;animacaoRodando=true;const o=document.getElementById('draw-overlay'),s=document.getElementById('draw-overlay-selection'),c=document.getElementById('draw-overlay-cup'),sp=document.getElementById('draw-spinner');o.classList.add('active');let i=Math.floor(Math.random()*sorteiosAnimacao.length),v=70,n=0,total=27;function next(){const x=sorteiosAnimacao[i%sorteiosAnimacao.length];s.textContent=x[0];c.textContent=x[1];renderDie(sp,1+Math.floor(Math.random()*6));n++;i++;if(n>=total){setTimeout(()=>form.submit(),650);return}v=Math.min(250,v+7);setTimeout(next,v)}next()}
+    renderDie(document.getElementById('idle-die'),5);document.querySelectorAll('.draw-trigger').forEach(f=>f.addEventListener('submit',e=>{e.preventDefault();iniciarSuspense(f)}));
   </script>
 </body>
 </html>
