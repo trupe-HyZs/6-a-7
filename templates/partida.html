@@ -41,6 +41,7 @@
     .field-panel { padding:8px; }
     .field-head { display:flex; justify-content:center; padding:0; height:0; overflow:hidden; }
     .football-field { min-height:650px; }
+    .field-row.goalkeeper-row { margin-top:auto; }
     .details-panel { padding:12px; min-height:650px; }
     .selected-player { display:grid; grid-template-columns:58px 1fr; gap:10px; align-items:center; padding-bottom:12px; border-bottom:1px solid #d7cfbc; }
     .player-avatar { width:58px; height:58px; display:grid; place-items:center; background:var(--cream); border:1px solid #c9c1ae; font-size:22px; font-weight:900; }
@@ -65,11 +66,10 @@
     .reroll-actions .secondary-button { margin:0; padding:7px 3px; font-size:7px; }
     .empty-selection { padding:18px 8px; text-align:center; border:1px dashed #c9c1ae; background:var(--cream); color:var(--muted); font-size:9px; line-height:1.5; }
 
-    /* Tela de sorteio / suspense */
-    .draw-screen { min-height:650px; display:grid; place-items:center; padding:30px; }
-    .draw-card { width:min(560px,100%); text-align:center; background:var(--white); border:1px solid rgba(23,23,21,.15); padding:42px 34px; box-shadow:5px 5px 0 #e4d6aa; }
-    .draw-kicker { color:var(--red); font-size:9px; letter-spacing:2px; font-weight:900; text-transform:uppercase; margin-bottom:12px; }
-    .draw-die { width:86px; height:86px; margin:0 auto 20px; display:grid; place-items:center; border:2px solid var(--black); background:var(--cream); font-size:42px; font-weight:900; box-shadow:6px 6px 0 var(--black); }
+    .real-die { width:86px; height:86px; margin:0 auto 20px; padding:11px; display:grid; grid-template-columns:repeat(3,1fr); grid-template-rows:repeat(3,1fr); gap:5px; border:2px solid var(--black); border-radius:14px; background:linear-gradient(145deg,#fffdf7,#e8dfca); box-shadow:6px 6px 0 var(--black), inset 2px 2px 5px rgba(255,255,255,.8), inset -3px -3px 6px rgba(0,0,0,.12); transform-style:preserve-3d; }
+    .die-pip { width:12px; height:12px; border-radius:50%; background:var(--black); place-self:center; box-shadow:inset 1px 1px 2px rgba(255,255,255,.22); }
+    .draw-die { width:86px; height:86px; margin:0 auto 20px; padding:11px; display:grid; grid-template-columns:repeat(3,1fr); grid-template-rows:repeat(3,1fr); gap:5px; border:2px solid var(--black); border-radius:14px; background:linear-gradient(145deg,#fffdf7,#e8dfca); box-shadow:6px 6px 0 var(--black), inset 2px 2px 5px rgba(255,255,255,.8), inset -3px -3px 6px rgba(0,0,0,.12); }
+    .draw-die.rolling { animation:dieRoll .24s infinite alternate; }
     .draw-title { font-size:28px; font-weight:900; margin:0; }
     .draw-subtitle { color:var(--muted); font-size:11px; margin:10px auto 24px; max-width:430px; line-height:1.5; }
     .draw-button { width:100%; border:0; background:var(--red); color:var(--white); padding:14px; font-size:10px; font-weight:900; letter-spacing:.5px; cursor:pointer; box-shadow:4px 4px 0 var(--black); }
@@ -78,20 +78,18 @@
     .draw-result { min-height:86px; display:grid; place-items:center; margin:8px auto 22px; padding:16px; border:1px solid #d7cfbc; background:var(--cream); }
     .draw-result .draw-selection { font-size:22px; font-weight:900; }
     .draw-result .draw-cup { display:block; color:var(--muted); font-size:10px; font-weight:800; margin-top:5px; }
-
-    /* Overlay usado durante a rolagem real */
     .draw-overlay { position:fixed; inset:0; z-index:9999; display:none; place-items:center; background:rgba(23,23,21,.72); backdrop-filter:blur(3px); }
     .draw-overlay.active { display:grid; }
     .draw-overlay-card { width:min(520px,calc(100% - 36px)); background:var(--cream); border:2px solid var(--black); padding:34px 28px; text-align:center; box-shadow:9px 9px 0 var(--black); }
-    .draw-spinner { width:76px; height:76px; margin:0 auto 20px; display:grid; place-items:center; border:2px solid var(--black); background:var(--white); font-size:30px; font-weight:900; animation:dieShake .22s infinite alternate; }
+    .draw-spinner { width:76px; height:76px; margin:0 auto 20px; padding:9px; display:grid; grid-template-columns:repeat(3,1fr); grid-template-rows:repeat(3,1fr); gap:4px; border:2px solid var(--black); border-radius:13px; background:linear-gradient(145deg,#fffdf7,#e8dfca); box-shadow:6px 6px 0 var(--black); }
+    .draw-spinner.rolling { animation:dieRoll .16s infinite alternate; }
     .draw-overlay-label { font-size:9px; letter-spacing:2px; font-weight:900; color:var(--red); text-transform:uppercase; }
     .draw-overlay-title { font-size:26px; font-weight:900; margin:8px 0 5px; }
     .draw-overlay-selection { min-height:48px; font-size:18px; font-weight:900; }
     .draw-overlay-cup { color:var(--muted); font-size:10px; margin-top:4px; }
     .draw-dots::after { content:'...'; animation:dots 1s steps(4,end) infinite; }
-    @keyframes dieShake { from { transform:rotate(-7deg) translateX(-2px); } to { transform:rotate(7deg) translateX(2px); } }
+    @keyframes dieRoll { from { transform:rotate(-10deg) translate(-2px,-2px) scale(.96); } to { transform:rotate(10deg) translate(2px,2px) scale(1.04); } }
     @keyframes dots { 0% { content:''; } 25% { content:'.'; } 50% { content:'..'; } 75%,100% { content:'...'; } }
-
     @media (max-width:1000px) { .match-layout { grid-template-columns:240px minmax(360px,1fr); } .details-panel { grid-column:1 / -1; min-height:auto; } .match-top { grid-template-columns:1fr 300px; } .reroll-block { position:static; margin-top:12px; } .players-panel { padding-bottom:11px; } }
     @media (max-width:720px) { .match-top, .match-layout { grid-template-columns:1fr; } .players-panel,.details-panel { min-height:auto; } .football-field { min-height:540px; } .reroll-block { position:static; } .players-panel { padding-bottom:11px; } .draw-screen { min-height:540px; } }
   </style>
@@ -162,7 +160,7 @@
           <div class="football-field">
             <div class="field-lines"></div>
             {% for linha in linhas_campo %}
-              <div class="field-row row-{{ loop.index }} count-{{ linha|length }}">
+              <div class="field-row {% if linha and linha[0].codigo == 'GOL' %}goalkeeper-row{% endif %} row-{{ loop.index }} count-{{ linha|length }}">
                 {% for pos in linha %}
                   {% set compatível = jogador_selecionado and pos.codigo in jogador_selecionado.posicoes %}
                   {% if jogador_selecionado and not pos.jogador and compatível %}
@@ -199,7 +197,7 @@
       <section class="draw-screen">
         <div class="draw-card">
           <div class="draw-kicker">NOVA RODADA</div>
-          <div class="draw-die" id="idle-die">?</div>
+          <div class="real-die" id="idle-die" aria-label="Dado"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
           <h1 class="draw-title">Pronto para sortear?</h1>
           <p class="draw-subtitle">Role o dado para descobrir a seleção e a Copa que vão entrar nesta rodada.</p>
           <div class="draw-result" id="idle-result"><div><div class="draw-selection">?</div><span class="draw-cup">Aguardando o sorteio</span></div></div>
@@ -211,7 +209,7 @@
 
   <div class="draw-overlay" id="draw-overlay" aria-hidden="true">
     <div class="draw-overlay-card">
-      <div class="draw-spinner" id="draw-spinner">?</div>
+      <div class="draw-spinner" id="draw-spinner"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
       <div class="draw-overlay-label">SORTEANDO<span class="draw-dots"></span></div>
       <div class="draw-overlay-title">Descobrindo a rodada</div>
       <div class="draw-overlay-selection" id="draw-overlay-selection">Brasil</div>
@@ -226,7 +224,9 @@
       ['Holanda','Copa 1974'], ['Croácia','Copa 2018'], ['Bélgica','Copa 1986'],
       ['Espanha','Copa 2010'], ['Inglaterra','Copa 1966'], ['Uruguai','Copa 1950']
     ];
-
+    const faces = {
+      1:[4], 2:[0,8], 3:[0,4,8], 4:[0,2,6,8], 5:[0,2,4,6,8], 6:[0,2,3,5,6,8]
+    };
     let animacaoRodando = false;
 
     function filtrarJogadores(valor){
@@ -234,6 +234,17 @@
       document.querySelectorAll('.player-item').forEach(item=>{
         item.style.display=item.dataset.name.includes(termo)?'':'none';
       });
+    }
+
+    function renderDie(element, value) {
+      if (!element) return;
+      element.innerHTML = '';
+      const active = faces[value] || [];
+      for (let i=0;i<9;i++) {
+        const pip = document.createElement('span');
+        if (active.includes(i)) pip.className = 'die-pip';
+        element.appendChild(pip);
+      }
     }
 
     function iniciarSuspense(form) {
@@ -247,6 +258,7 @@
       if (button) button.disabled = true;
       overlay.classList.add('active');
       overlay.setAttribute('aria-hidden','false');
+      spinner.classList.add('rolling');
 
       let index = Math.floor(Math.random() * sorteiosAnimacao.length);
       let velocidade = 90;
@@ -255,16 +267,18 @@
 
       function proximo() {
         const item = sorteiosAnimacao[index % sorteiosAnimacao.length];
+        const face = 1 + Math.floor(Math.random() * 6);
         selection.textContent = item[0];
         cup.textContent = item[1];
-        spinner.textContent = String((passos % 6) + 1);
+        renderDie(spinner, face);
         passos++;
         index += 1 + Math.floor(Math.random() * 2);
 
         if (passos >= totalPassos) {
           selection.textContent = 'SAIU!';
           cup.textContent = `${item[0]} · ${item[1]}`;
-          spinner.textContent = '✓';
+          renderDie(spinner, face);
+          spinner.classList.remove('rolling');
           setTimeout(() => form.submit(), 650);
           return;
         }
@@ -275,6 +289,7 @@
       proximo();
     }
 
+    renderDie(document.getElementById('idle-die'), 5);
     document.querySelectorAll('.draw-trigger').forEach(form => {
       form.addEventListener('submit', function(event) {
         event.preventDefault();
