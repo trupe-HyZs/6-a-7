@@ -31,16 +31,9 @@
             <h2>Pronto para sortear?</h2>
             <p>Role o dado para descobrir a seleção e a Copa que vão entrar nesta rodada.</p>
           </div>
-          <form method="post">
-            <input type="hidden" name="acao" value="sortear">
-            <button class="primary-button roll-button" type="submit">ROLAR O DADO →</button>
-          </form>
+          <form method="post"><input type="hidden" name="acao" value="sortear"><button class="primary-button roll-button" type="submit">ROLAR O DADO →</button></form>
         </div>
-        <div class="draw-info">
-          <span class="setup-number">01</span>
-          <h2>Monte sua seleção</h2>
-          <p>O sorteio define o universo de jogadores desta rodada. Depois dele, você vai preencher a formação.</p>
-        </div>
+        <div class="draw-info"><span class="setup-number">01</span><h2>Monte sua seleção</h2><p>O sorteio define o universo de jogadores desta rodada. Depois dele, você vai preencher a formação.</p></div>
       </section>
     {% else %}
       <section class="team-builder">
@@ -68,8 +61,7 @@
         <aside class="player-panel">
           <span class="setup-number">02</span>
           {% if completo %}
-            <h2>Time completo.</h2>
-            <p>Os 11 jogadores foram escolhidos.</p>
+            <h2>Time completo.</h2><p>Os 11 jogadores foram escolhidos.</p>
           {% else %}
             <h2>Escolha um jogador</h2>
             <p class="position-target">Próxima posição: <strong>{{ proxima_nome }}</strong></p>
@@ -77,7 +69,7 @@
               {% for jogador in jogadores %}
                 <form method="post">
                   <input type="hidden" name="acao" value="escolher">
-                  <input type="hidden" name="posicao" value="{{ proxima }}_{{ (posicoes|selectattr('codigo', 'equalto', proxima)|list|length) - (jogadores|length) + loop.index }}">
+                  <input type="hidden" name="posicao" value="{{ proxima_key }}">
                   <input type="hidden" name="jogador" value="{{ jogador }}">
                   <button class="player-option" type="submit">
                     <span class="player-number">#{{ loop.index }}</span>
@@ -88,11 +80,7 @@
               {% endfor %}
             </div>
           {% endif %}
-
-          <form method="post" class="reroll-form">
-            <input type="hidden" name="acao" value="sortear">
-            <button class="secondary-button" type="submit">ROLAR NOVAMENTE</button>
-          </form>
+          <form method="post" class="reroll-form"><input type="hidden" name="acao" value="sortear"><button class="secondary-button" type="submit">ROLAR NOVAMENTE</button></form>
         </aside>
       </section>
     {% endif %}
