@@ -149,6 +149,16 @@ def preparar_jogadores(elenco, escolhidos, posicoes, selecionado_id=None):
     return resultado
 
 
+def sortear_proxima_selecao():
+    selecao_anterior = session.get("sorteio", {}).get("selecao")
+    opcoes_selecao = [s for s in SELECOES if s != selecao_anterior] if selecao_anterior else SELECOES
+    return {
+        "dado": random.randint(1, 6),
+        "selecao": random.choice(opcoes_selecao),
+        "copa": random.choice(COPAS),
+    }
+
+
 @app.route("/")
 def index():
     return redirect(url_for("dashboard" if "user_id" in session else "login"))
@@ -201,6 +211,7 @@ def desafio():
         session.pop("sorteio", None)
         session.pop("escolhidos", None)
         session.pop("jogador_selecionado", None)
+        session["rolagens_manuais"] = 0
         return redirect(url_for("partida"))
     return render_template("desafio.html")
 
@@ -214,16 +225,16 @@ def partida():
 
     if request.method == "POST":
         acao = request.form.get("acao", "sortear")
+
         if acao == "sortear":
-            selecao_anterior = session.get("sorteio", {}).get("selecao")
-            opcoes_selecao = [s for s in SELECOES if s != selecao_anterior] if selecao_anterior else SELECOES
-            session["sorteio"] = {
-                "dado": random.randint(1, 6),
-                "selecao": random.choice(opcoes_selecao),
-                "copa": random.choice(COPAS),
-            }
-            # A escalação permanece. Apenas a seleção/copa da próxima rodada muda.
-            session.pop("jogador_selecionado", None)
+            if session.get("sorteio") and session.get("rolagens_manuais", 0) >= 3:
+                pass
+            else:
+                session["sorteio"] = sortear_proxima_selecao()
+                if session.get("rolagens_manuais", 0) or session.get("sorteio"):
+                    if request.form.get("inicio") != "1":
+                        session["rolagens_manuais"] = session.get("rolagens_manuais", 0) + (1 if session.get("sorteio") else 0)
+                session.pop("jogador_selecionado", None)
 
         elif acao == "selecionar_jogador" and session.get("sorteio"):
             jogador_id = request.form.get("jogador")
@@ -250,6 +261,11 @@ def partida():
                 session["escolhidos"] = escolhidos
                 session.pop("jogador_selecionado", None)
 
+                # Depois de colocar cada jogador, sorteia automaticamente uma nova seleção.
+                # Esse sorteio automático NÃO consome nenhum dos 3 rerolls manuais.
+                if len(escolhidos) < 11:
+                    session["sorteio"] = sortear_proxima_selecao()
+
     sorteio = session.get("sorteio")
     escolhidos = session.get("escolhidos", {})
     selecionado_id = session.get("jogador_selecionado")
@@ -275,6 +291,7 @@ def partida():
         proxima=proxima,
         proxima_nome=POSICOES_NOMES.get(proxima, proxima) if proxima else None,
         completo=completo,
+        rolagens_manuais=session.get("rolagens_manuais", 0),
     )
 
 
