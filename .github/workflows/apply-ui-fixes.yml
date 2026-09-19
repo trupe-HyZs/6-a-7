@@ -1,0 +1,38 @@
+name: Apply UI fixes
+on:
+  push:
+    paths:
+      - '.github/workflows/apply-ui-fixes.yml'
+permissions:
+  contents: write
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch partida UI
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('templates/partida.html')
+          s = p.read_text(encoding='utf-8')
+          anchor = "    .crest { width:50px; height:50px; display:grid; place-items:center; font-size:34px; }"
+          addition = r'''\n    /* UI fixes: reroll only replaces the player picker after a player is selected. */\n    .crest { font-size:0; position:relative; }\n    .crest::before { content:'RM'; width:42px; height:46px; display:grid; place-items:center; color:#fff; background:linear-gradient(135deg,#8b0000 0 28%,#f4f4f4 28% 72%,#8b0000 72%); border:2px solid #c9a33a; clip-path:polygon(50% 0,92% 14%,84% 72%,50% 100%,16% 72%,8% 14%); font-size:11px; font-weight:900; letter-spacing:-.5px; text-shadow:0 1px 1px #000; }\n    .field-slot-form { margin:0 !important; padding:0 !important; border:0 !important; background:transparent !important; }\n    .field-slot-button, .field-slot-button:hover, .field-slot-button:focus, .field-slot-button:active { appearance:none; -webkit-appearance:none; margin:0 !important; padding:0 !important; border:0 !important; outline:none !important; background:transparent !important; box-shadow:none !important; color:inherit; }\n    .field-slot-button::-moz-focus-inner { border:0; padding:0; }\n    .players-panel { padding-bottom:11px; }\n    .players-panel .reroll-block { display:none; }\n    .match-layout:has(.details-panel .selected-player) .players-panel > .panel-heading,\n    .match-layout:has(.details-panel .selected-player) .players-panel > .search-box,\n    .match-layout:has(.details-panel .selected-player) .players-panel > .player-count,\n    .match-layout:has(.details-panel .selected-player) .players-panel > .all-players { display:none; }\n    .match-layout:has(.details-panel .selected-player) .players-panel .reroll-block { position:static; display:block; margin:0; padding-top:0; border-top:0; background:transparent; }\n    .match-layout:has(.details-panel .selected-player) .players-panel .reroll-count { margin-bottom:8px; }\n'''
+          if anchor not in s:
+              raise SystemExit('anchor not found')
+          if 'UI fixes: reroll only replaces' not in s:
+              s = s.replace(anchor, anchor + addition, 1)
+          p.write_text(s, encoding='utf-8')
+          PY
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add templates/partida.html
+          git commit -m 'Ajusta reroll, foco das posições e escudo Real' || true
+          git push
+      - name: Remove one-off workflow
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git rm .github/workflows/apply-ui-fixes.yml
+          git commit -m 'Remove workflow temporário de ajuste' || true
+          git push
