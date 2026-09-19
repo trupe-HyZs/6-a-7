@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>6 a 7 — Desafio</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="game-page">
+  <header class="topbar">
+    <a class="brand-link" href="{{ url_for('dashboard') }}"><div class="brand-mark small">6 <span>a</span> 7</div></a>
+    <a class="logout" href="{{ url_for('logout') }}">SAIR</a>
+  </header>
+
+  <main class="game-shell">
+    <p class="eyebrow">DESAFIO</p>
+    <h1>Monte sua partida.</h1>
+    <p class="subtitle">Escolha o modo, a formação e o estilo do seu time antes de começar.</p>
+
+    <form class="setup-grid" method="post">
+      <section class="setup-card">
+        <div class="setup-number">01</div>
+        <h2>Modo</h2>
+        <div class="choice-grid two">
+          <label class="choice"><input type="radio" name="modo" value="normal" checked><span>Normal</span></label>
+          <label class="choice"><input type="radio" name="modo" value="almanaque"><span>Almanaque</span></label>
+        </div>
+      </section>
+
+      <section class="setup-card">
+        <div class="setup-number">02</div>
+        <h2>Formação</h2>
+        <div class="choice-grid">
+          <label class="choice"><input type="radio" name="formacao" value="4-3-3" checked><span>4-3-3</span></label>
+          <label class="choice"><input type="radio" name="formacao" value="4-4-2"><span>4-4-2</span></label>
+          <label class="choice"><input type="radio" name="formacao" value="4-2-3-1"><span>4-2-3-1</span></label>
+          <label class="choice"><input type="radio" name="formacao" value="4-2-4"><span>4-2-4</span></label>
+          <label class="choice"><input type="radio" name="formacao" value="3-5-2"><span>3-5-2</span></label>
+          <label class="choice"><input type="radio" name="formacao" value="5-3-2"><span>5-3-2</span></label>
+          <label class="choice"><input type="radio" name="formacao" value="4-5-1"><span>4-5-1</span></label>
+          <label class="choice"><input type="radio" name="formacao" value="3-4-3"><span>3-4-3</span></label>
+        </div>
+      </section>
+
+      <section class="setup-card">
+        <div class="setup-number">03</div>
+        <h2>Estilo</h2>
+        <div class="choice-grid three">
+          <label class="choice"><input type="radio" name="estilo" value="defensivo"><span>Defensivo</span></label>
+          <label class="choice"><input type="radio" name="estilo" value="equilibrado" checked><span>Equilibrado</span></label>
+          <label class="choice"><input type="radio" name="estilo" value="ofensivo"><span>Ofensivo</span></label>
+        </div>
+      </section>
+
+      <button class="primary-button start-button" type="submit">COMEÇAR PARTIDA →</button>
+    </form>
+  </main>
+</body>
+</html>
