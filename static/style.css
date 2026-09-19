@@ -181,6 +181,22 @@ h1 { font-size: clamp(38px, 7vw, 54px); }
 .field-circle { width: 120px; height: 120px; border: 2px solid rgba(255,255,255,.7); border-radius: 50%; display: grid; place-items: center; font-size: 24px; font-weight: 900; }
 .field-placeholder p { margin: 0; max-width: 380px; color: rgba(255,255,255,.85); }
 
+@media (max-height: 820px) and (min-width: 701px) {
+  .topbar { padding-top: 10px; padding-bottom: 10px; }
+  .game-shell { padding-top: 24px; padding-bottom: 36px; }
+  .game-shell .eyebrow { margin-bottom: 5px; }
+  .game-shell h1 { font-size: 42px; }
+  .game-shell .subtitle { margin: 6px 0 16px; font-size: 12px; }
+  .setup-grid { gap: 10px; margin-top: 16px; }
+  .setup-card { padding: 13px 14px; box-shadow: 4px 4px 0 rgba(201, 163, 58, .35); }
+  .setup-card h2 { font-size: 20px; margin-bottom: 10px; }
+  .setup-number { margin-bottom: 8px; font-size: 10px; }
+  .choice-grid { gap: 7px; }
+  .choice span { padding: 9px 8px; font-size: 12px; }
+  .choice input:checked + span { box-shadow: 2px 2px 0 var(--red); }
+  .start-button { padding: 11px 16px; font-size: 13px; }
+}
+
 @media (max-width: 700px) {
   .auth-card { padding: 30px 24px; }
   .mode-grid { grid-template-columns: 1fr; }
