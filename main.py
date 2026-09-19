@@ -227,13 +227,11 @@ def partida():
         acao = request.form.get("acao", "sortear")
 
         if acao == "sortear":
-            if session.get("sorteio") and session.get("rolagens_manuais", 0) >= 3:
-                pass
-            else:
+            tinha_sorteio = bool(session.get("sorteio"))
+            if not tinha_sorteio or session.get("rolagens_manuais", 0) < 3:
                 session["sorteio"] = sortear_proxima_selecao()
-                if session.get("rolagens_manuais", 0) or session.get("sorteio"):
-                    if request.form.get("inicio") != "1":
-                        session["rolagens_manuais"] = session.get("rolagens_manuais", 0) + (1 if session.get("sorteio") else 0)
+                if tinha_sorteio:
+                    session["rolagens_manuais"] = session.get("rolagens_manuais", 0) + 1
                 session.pop("jogador_selecionado", None)
 
         elif acao == "selecionar_jogador" and session.get("sorteio"):
@@ -261,8 +259,8 @@ def partida():
                 session["escolhidos"] = escolhidos
                 session.pop("jogador_selecionado", None)
 
-                # Depois de colocar cada jogador, sorteia automaticamente uma nova seleção.
-                # Esse sorteio automático NÃO consome nenhum dos 3 rerolls manuais.
+                # Sorteio automático após cada jogador colocado.
+                # Não altera rolagens_manuais.
                 if len(escolhidos) < 11:
                     session["sorteio"] = sortear_proxima_selecao()
 
