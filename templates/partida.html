@@ -12,10 +12,10 @@
     <a class="logout" href="{{ url_for('logout') }}">SAIR</a>
   </header>
 
-  <main class="game-shell">
+  <main class="game-shell match-shell">
     <p class="eyebrow">PARTIDA</p>
-    <h1>Seu time está pronto.</h1>
-    <p class="subtitle">Esta é a primeira versão da partida. A próxima etapa será o dado e a escolha dos jogadores.</p>
+    <h1>Role o dado.</h1>
+    <p class="subtitle">Sorteie uma seleção e uma Copa do Mundo para começar a montar seu time.</p>
 
     <section class="match-preview">
       <div>
@@ -32,10 +32,43 @@
       </div>
     </section>
 
-    <section class="field-placeholder">
-      <div class="field-title">CAMPO DE JOGO</div>
-      <div class="field-circle">6 a 7</div>
-      <p>O campo e a seleção de jogadores entram na próxima etapa.</p>
+    <section class="draw-layout">
+      <div class="draw-card">
+        {% if sorteio %}
+          <div class="draw-result-label">SORTEIO REALIZADO</div>
+          <div class="dice-face">{{ sorteio.dado }}</div>
+          <div class="draw-result">
+            <span>SELEÇÃO</span>
+            <strong>{{ sorteio.selecao }}</strong>
+            <span>COPA</span>
+            <strong>{{ sorteio.copa }}</strong>
+          </div>
+        {% else %}
+          <div class="draw-empty">
+            <div class="dice-face">?</div>
+            <h2>Pronto para sortear?</h2>
+            <p>Role o dado para descobrir a seleção e a Copa que vão entrar nesta rodada.</p>
+          </div>
+        {% endif %}
+
+        <form method="post">
+          <button class="primary-button roll-button" type="submit">
+            {% if sorteio %}ROLAR NOVAMENTE{% else %}ROLAR O DADO{% endif %} →
+          </button>
+        </form>
+      </div>
+
+      <div class="draw-info">
+        <span class="setup-number">01</span>
+        <h2>Monte sua seleção</h2>
+        <p>O sorteio define o universo de jogadores desta rodada. Depois dele, a próxima etapa será escolher os jogadores para preencher a formação.</p>
+        {% if sorteio %}
+          <div class="selected-universe">
+            <span>{{ sorteio.selecao }}</span>
+            <span>{{ sorteio.copa }}</span>
+          </div>
+        {% endif %}
+      </div>
     </section>
 
     <a class="secondary-button mode-link" href="{{ url_for('desafio') }}">← ALTERAR CONFIGURAÇÃO</a>
