@@ -88,8 +88,8 @@ def partida():
  sorteio=session.get('sorteio');e=session.get('escolhidos',{});sel=session.get('jogador_selecionado');p=montar_posicoes(cfg['formacao'],e) if sorteio else [];linhas=montar_linhas_campo(cfg['formacao'],p) if sorteio else [];elenco=get_elenco(sorteio['selecao']) if sorteio else [];jogadores=preparar_jogadores(elenco,e,p,sel) if sorteio else [];js=next((j for j in jogadores if j['id']==sel),None)
  html=render_template('partida.html',username=session['username'],modo=cfg['modo'],formacao=cfg['formacao'],estilo=cfg['estilo'],sorteio=sorteio,posicoes=p,linhas_campo=linhas,jogadores=jogadores,jogador_selecionado=js,completo=len(e)>=11,rolagens_manuais=session.get('rolagens_manuais',0),pode_rerolar=session.get('pode_rerolar',False))
  html=html.replace('</style>','''</style><style>.reroll-main{display:none}.reroll-grid form:nth-child(2),.reroll-grid form:nth-child(3){display:none}.phase-selection .reroll-main{display:none}.phase-selection .reroll-grid form:nth-child(2),.phase-selection .reroll-grid form:nth-child(3){display:block}.phase-reroll .reroll-main{display:block}.phase-reroll .reroll-grid form:nth-child(2),.phase-reroll .reroll-grid form:nth-child(3){display:none}</style>''')
- html=html.replace('<body class="game-page">','<body class="game-page" id="partida-page">')
- html=html.replace('</body>','''<script>(function(){const box=document.querySelector('.score-title');const selected=document.querySelector('.details-panel .selected');const controls=document.querySelector('.reroll');if(!controls)return;const m=box&&box.textContent.match(/(\\d+)\\s*\\/\\s*11/);const count=m?parseInt(m[1],10):0;document.getElementById('partida-page').classList.add(selected?'phase-selection':(count>0?'phase-reroll':'phase-selection'));})();</script></body>''')
+ phase='phase-selection' if js else ('phase-reroll' if len(e)>0 else 'phase-selection')
+ html=html.replace('<body class="game-page">',f'<body class="game-page {phase}" id="partida-page">')
  return html
 @app.route('/logout')
 def logout():session.clear();return redirect(url_for('login'))
