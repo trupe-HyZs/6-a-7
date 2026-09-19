@@ -6,109 +6,126 @@
   <title>6 a 7 — Partida</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   <style>
-    .builder-header { display:flex; justify-content:space-between; gap:20px; align-items:flex-end; margin-top:28px; }
-    .builder-header h2 { font-size:28px; }
-    .builder-header p { margin:5px 0 0; color:var(--muted); font-size:12px; }
-    .selection-layout { display:grid; grid-template-columns:minmax(250px,.85fr) minmax(390px,1.35fr) minmax(250px,.8fr); gap:16px; margin-top:18px; align-items:start; }
-    .selection-panel, .field-panel, .detail-panel { background:var(--white); border:1px solid rgba(23,23,21,.15); box-shadow:6px 6px 0 rgba(201,163,58,.35); }
-    .selection-panel, .detail-panel { padding:18px; }
-    .panel-title { display:flex; justify-content:space-between; align-items:baseline; gap:10px; margin-bottom:12px; }
-    .panel-title h2 { font-size:21px; }
-    .search-box { width:100%; border:1px solid #c9c1ae; background:var(--cream); padding:10px; font-size:12px; margin-bottom:9px; outline:none; }
-    .all-players { max-height:570px; overflow-y:auto; padding-right:4px; display:grid; gap:6px; }
+    .game-shell.match-shell { max-width:1120px; padding:22px 18px 50px; }
+    .game-shell .eyebrow, .game-shell > h1, .game-shell > .subtitle { display:none; }
+    .match-top { display:grid; grid-template-columns:1fr 360px; gap:8px; margin-bottom:12px; }
+    .universe-card, .score-card, .players-panel, .field-panel, .details-panel { background:var(--white); border:1px solid rgba(23,23,21,.15); }
+    .universe-card { min-height:78px; padding:14px 18px; display:flex; align-items:center; justify-content:space-between; gap:20px; }
+    .universe-main { display:flex; align-items:center; gap:14px; }
+    .crest { width:50px; height:50px; display:grid; place-items:center; font-size:34px; }
+    .mini-label { display:block; color:var(--muted); font-size:8px; font-weight:900; letter-spacing:1.7px; text-transform:uppercase; margin-bottom:4px; }
+    .universe-name { font-size:19px; font-weight:900; }
+    .cup-name { font-size:13px; font-weight:900; }
+    .score-card { padding:11px 14px; display:grid; grid-template-columns:1fr auto; align-items:center; gap:3px 12px; }
+    .score-title { font-size:8px; letter-spacing:1.5px; font-weight:900; color:var(--muted); }
+    .score-overall { font-size:20px; font-weight:900; text-align:right; grid-row:1 / span 2; }
+    .score-count { font-size:8px; color:var(--muted); }
+    .score-lines { display:flex; gap:26px; margin-top:5px; }
+    .score-lines span { font-size:10px; font-weight:900; }
+    .score-lines .atk { color:var(--red); } .score-lines .def { color:#28749a; }
+    .match-layout { display:grid; grid-template-columns:270px minmax(440px,1fr) 285px; gap:10px; align-items:stretch; }
+    .players-panel { padding:11px; min-height:650px; }
+    .panel-heading { font-size:16px; font-weight:900; margin-bottom:8px; }
+    .search-box { width:100%; border:1px solid #c9c1ae; background:var(--cream); padding:8px 9px; font-size:10px; outline:none; margin-bottom:7px; }
+    .player-count { display:flex; justify-content:space-between; align-items:center; color:var(--muted); font-size:8px; font-weight:800; margin:0 2px 6px; }
+    .all-players { max-height:570px; overflow-y:auto; padding-right:2px; display:grid; gap:2px; }
     .player-select-form { margin:0; }
-    .player-select { width:100%; border:1px solid #c9c1ae; background:var(--cream); padding:9px; display:grid; grid-template-columns:25px 1fr; gap:7px; align-items:center; text-align:left; cursor:pointer; }
-    .player-select:hover:not(:disabled) { background:var(--black); color:var(--white); }
-    .player-select:disabled { opacity:.38; cursor:not-allowed; }
-    .player-select strong { display:block; font-size:11px; }
-    .player-select small { display:block; margin-top:3px; font-size:8px; color:var(--muted); font-weight:700; }
-    .player-select:hover small { color:#ddd; }
-    .player-number { font-size:9px; font-weight:900; color:var(--red); }
-    .field-panel { padding:14px; }
-    .field-head { display:flex; justify-content:space-between; gap:16px; padding:3px 6px 12px; }
-    .field-head > div { display:grid; gap:4px; }
-    .field-head strong { font-size:17px; }
-    .football-field { min-height:570px; }
-    .field-slot-form { margin:0; display:contents; }
-    .field-slot-button { appearance:none; border:0; padding:0; background:transparent; color:inherit; font:inherit; display:grid; justify-items:center; gap:4px; cursor:pointer; }
-    .field-slot-button:disabled { cursor:not-allowed; }
-    .field-slot-button .slot-circle { transition:.15s ease; }
-    .field-slot-button:hover:not(:disabled) .slot-circle { transform:scale(1.08); background:var(--white); color:var(--black); }
-    .field-slot-button:hover:not(:disabled) .slot-name { background:var(--black); color:var(--white); }
-    .field-slot-button.incompatible { opacity:.38; cursor:not-allowed; }
-    .detail-panel { min-height:570px; }
-    .detail-panel h2 { font-size:26px; margin-bottom:8px; }
-    .detail-panel > p { color:var(--muted); font-size:12px; line-height:1.5; margin-top:0; }
-    .selected-card { display:grid; grid-template-columns:1fr 62px; gap:10px; align-items:center; padding:12px; margin:16px 0; background:var(--cream); border-left:4px solid var(--red); }
-    .selected-card strong { display:block; font-size:16px; }
-    .selected-card small { display:block; margin-top:4px; color:var(--muted); font-size:9px; font-weight:800; }
-    .fake-avatar { width:58px; height:58px; display:grid; place-items:center; border:1px solid #c9c1ae; background:var(--white); font-size:22px; font-weight:900; }
-    .empty-selection { padding:28px 6px; text-align:center; border:1px dashed #c9c1ae; background:var(--cream); color:var(--muted); font-size:11px; line-height:1.5; }
-    .reroll-form { margin-top:14px; }
-    .reroll-form .secondary-button { width:100%; margin-top:0; }
-    .reroll-count { display:block; text-align:center; margin-top:7px; color:var(--muted); font-size:9px; font-weight:800; }
-    .reroll-top { margin:0 0 14px; padding-bottom:12px; border-bottom:1px solid #c9c1ae; }
-    .reroll-top .reroll-form { margin-top:0; }
-    .reroll-top .reroll-count { margin-bottom:8px; }
-    .bottom-actions { display:flex; gap:10px; margin-top:18px; }
-    .bottom-actions .secondary-button { margin-top:0; }
-    @media (max-width:1050px) { .selection-layout { grid-template-columns:minmax(220px,.8fr) minmax(360px,1.2fr); } .detail-panel { grid-column:1 / -1; min-height:auto; } }
-    @media (max-width:760px) { .selection-layout { grid-template-columns:1fr; } .field-panel { order:1; } .selection-panel { order:2; } .detail-panel { order:3; } .football-field { min-height:500px; } }
+    .player-select { width:100%; min-height:34px; border:1px solid #e0d8c6; background:var(--cream); padding:5px 6px; display:grid; grid-template-columns:18px 1fr auto 12px; gap:5px; align-items:center; text-align:left; cursor:pointer; }
+    .player-select:hover:not(:disabled) { background:#eee5d1; }
+    .player-select:disabled { opacity:.36; cursor:not-allowed; }
+    .player-number { font-size:8px; font-weight:900; color:var(--red); }
+    .player-name { font-size:10px; font-weight:900; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .player-pos { display:flex; gap:2px; }
+    .pos-tag { border:1px solid #c8c0ae; padding:2px 3px; font-size:6px; font-weight:900; color:var(--muted); background:var(--white); }
+    .player-ovr { font-size:10px; font-weight:900; }
+    .player-arrow { color:var(--muted); font-size:11px; }
+    .field-panel { padding:8px; }
+    .field-head { display:flex; justify-content:center; padding:0; height:0; overflow:hidden; }
+    .football-field { min-height:650px; }
+    .details-panel { padding:12px; min-height:650px; }
+    .selected-player { display:grid; grid-template-columns:58px 1fr; gap:10px; align-items:center; padding-bottom:12px; border-bottom:1px solid #d7cfbc; }
+    .player-avatar { width:58px; height:58px; display:grid; place-items:center; background:var(--cream); border:1px solid #c9c1ae; font-size:22px; font-weight:900; }
+    .selected-name { font-size:15px; font-weight:900; line-height:1.05; }
+    .selected-meta { font-size:8px; color:var(--muted); font-weight:800; margin-top:5px; }
+    .selected-overall { font-size:18px; font-weight:900; margin-top:4px; }
+    .selected-positions { display:flex; gap:5px; margin:10px 0 14px; }
+    .position-choice { border:1px solid #c9c1ae; background:var(--cream); padding:6px 14px; font-size:9px; font-weight:900; }
+    .position-choice.active { background:var(--black); color:var(--white); }
+    .box-title { color:var(--muted); font-size:8px; letter-spacing:1.5px; font-weight:900; margin:14px 0 7px; }
+    .team-box { width:100%; border-collapse:collapse; font-size:8px; }
+    .team-box th { text-align:left; color:var(--muted); font-size:7px; padding:5px 3px; border-bottom:1px solid #d7cfbc; }
+    .team-box td { padding:6px 3px; border-bottom:1px solid #eee8d9; }
+    .team-box td:last-child, .team-box th:last-child { text-align:right; font-weight:900; }
+    .team-box .occupied { color:var(--black); font-weight:900; }
+    .team-box .empty { color:#aaa398; }
+    .reroll-block { margin-top:12px; padding-top:10px; border-top:1px solid #d7cfbc; }
+    .reroll-count { display:block; color:var(--muted); text-align:center; font-size:8px; font-weight:800; margin-bottom:5px; }
+    .reroll-form { margin:0; }
+    .reroll-form .secondary-button { width:100%; margin:0; padding:9px; font-size:9px; }
+    .reroll-actions { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:6px; }
+    .reroll-actions .secondary-button { margin:0; padding:8px 4px; font-size:8px; }
+    .back-button { width:100%; margin-top:12px; padding:10px; font-size:9px; }
+    .empty-selection { padding:18px 8px; text-align:center; border:1px dashed #c9c1ae; background:var(--cream); color:var(--muted); font-size:9px; line-height:1.5; }
+    @media (max-width:1000px) { .match-layout { grid-template-columns:240px minmax(360px,1fr); } .details-panel { grid-column:1 / -1; min-height:auto; } .match-top { grid-template-columns:1fr 300px; } }
+    @media (max-width:720px) { .match-top, .match-layout { grid-template-columns:1fr; } .players-panel,.details-panel { min-height:auto; } .football-field { min-height:540px; } }
   </style>
 </head>
 <body class="game-page">
-  <header class="topbar">
-    <a class="brand-link" href="{{ url_for('dashboard') }}"><div class="brand-mark small">6 <span>a</span> 7</div></a>
-    <a class="logout" href="{{ url_for('logout') }}">SAIR</a>
-  </header>
-
   <main class="game-shell match-shell">
-    <p class="eyebrow">PARTIDA</p>
-    <h1>Monte seu time.</h1>
-    <p class="subtitle">{{ sorteio.selecao if sorteio else 'Role o dado' }}{% if sorteio %} · {{ sorteio.copa }}{% endif %}</p>
+    {% set bandeiras = {'Brasil':'🇧🇷','Argentina':'🇦🇷','França':'🇫🇷','Alemanha':'🇩🇪','Espanha':'🇪🇸','Itália':'🇮🇹','Portugal':'🇵🇹','Inglaterra':'🏴','Uruguai':'🇺🇾','Holanda':'🇳🇱','Croácia':'🇭🇷','Bélgica':'🇧🇪'} %}
+    {% set score = namespace(total=0, attack=0, defense=0, count=0) %}
+    {% for j in jogadores %}
+      {% if j.escolhido %}
+        {% set ov = 96 - ((loop.index0 * 3) % 13) %}
+        {% set score.total = score.total + ov %}
+        {% set score.count = score.count + 1 %}
+        {% if j.posicoes[0] in ['GOL','LE','LD','ZAG','VOL'] %}
+          {% set score.defense = score.defense + (ov - 10) %}
+        {% else %}
+          {% set score.attack = score.attack + (ov - 60) %}
+        {% endif %}
+      {% endif %}
+    {% endfor %}
+    {% set team_ovr = (score.total // score.count) if score.count else 0 %}
 
-    <section class="match-preview">
-      <div><span class="match-label">MODO</span><strong>{{ modo|title }}</strong></div>
-      <div><span class="match-label">FORMAÇÃO</span><strong>{{ formacao }}</strong></div>
-      <div><span class="match-label">ESTILO</span><strong>{{ estilo|title }}</strong></div>
-    </section>
-
-    {% if not sorteio %}
-      <section class="draw-layout">
-        <div class="draw-card">
-          <div class="draw-empty">
-            <div class="dice-face">?</div>
-            <h2>Pronto para sortear?</h2>
-            <p>Role o dado para descobrir a seleção e a Copa que vão entrar nesta rodada.</p>
+    {% if sorteio %}
+      <section class="match-top">
+        <div class="universe-card">
+          <div>
+            <span class="mini-label">SELEÇÃO</span>
+            <div class="universe-name">{{ sorteio.selecao }}</div>
           </div>
-          <form method="post"><input type="hidden" name="acao" value="sortear"><button class="primary-button roll-button" type="submit">ROLAR O DADO →</button></form>
+          <div class="universe-main">
+            <div class="crest">{{ bandeiras.get(sorteio.selecao, '⚽') }}</div>
+          </div>
+          <div>
+            <span class="mini-label">COPA</span>
+            <div class="cup-name">{{ sorteio.copa }}</div>
+          </div>
         </div>
-        <div class="draw-info"><span class="setup-number">01</span><h2>Monte sua seleção</h2><p>O sorteio define a seleção da rodada. Escolha qualquer jogador e coloque-o diretamente em uma posição compatível e livre no campo.</p></div>
+        <div class="score-card">
+          <div><span class="score-title">BOX SCORE · {{ score.count }}/11</span><div class="score-lines"><span class="atk">{{ score.attack if score.attack else 0 }} ATAQUE</span><span class="def">{{ score.defense if score.defense else 0 }} DEFESA</span></div></div>
+          <div class="score-overall">{{ team_ovr }}</div>
+        </div>
       </section>
-    {% else %}
-      <div class="builder-header">
-        <div><h2>{{ sorteio.selecao }} · {{ sorteio.copa }}</h2><p>{% if jogador_selecionado %}Clique no campo em uma posição compatível para colocar o jogador.{% else %}Escolha um jogador na lista para começar.{% endif %}</p></div>
-      </div>
 
-      <section class="selection-layout">
-        <aside class="selection-panel">
-          <div class="reroll-top">
-            <span class="reroll-count">Não curtiu? Re-sorteie · {{ 3 - rolagens_manuais }} restantes</span>
-            <form method="post" class="reroll-form">
-              <input type="hidden" name="acao" value="sortear">
-              <button class="secondary-button" type="submit" {% if rolagens_manuais >= 3 or completo %}disabled{% endif %}>↻ ROLAR NOVAMENTE</button>
-            </form>
-          </div>
-          <div class="panel-title"><h2>Escolha um jogador</h2></div>
-          <input class="search-box" type="search" placeholder="Buscar jogador..." oninput="filtrarJogadores(this.value)">
+      <section class="match-layout">
+        <aside class="players-panel">
+          <div class="panel-heading">ESCOLHA UM JOGADOR</div>
+          <input class="search-box" type="search" placeholder="⌕ Buscar jogador..." oninput="filtrarJogadores(this.value)">
+          <div class="player-count"><span>JOGADORES DISPONÍVEIS</span><span>{{ jogadores|length - score.count }}/{{ jogadores|length }}</span></div>
           <div class="all-players" id="player-list">
             {% for jogador in jogadores %}
+              {% set ov = 96 - ((loop.index0 * 3) % 13) %}
               <form class="player-select-form player-item" method="post" data-name="{{ jogador.nome|lower }}">
                 <input type="hidden" name="acao" value="selecionar_jogador">
                 <input type="hidden" name="jogador" value="{{ jogador.id }}">
                 <button class="player-select" type="submit" {% if jogador.escolhido or not jogador.tem_posicao_livre %}disabled{% endif %}>
-                  <span class="player-number">#{{ loop.index }}</span>
-                  <span><strong>{{ jogador.nome.split(' — ')[-1] }}</strong><small>{% for pos in jogador.posicoes %}{{ pos }}{% if not loop.last %} / {% endif %}{% endfor %}</small></span>
+                  <span class="player-number">{{ loop.index }}</span>
+                  <span class="player-name">{{ jogador.nome.split(' — ')[-1] }}</span>
+                  <span class="player-pos">{% for pos in jogador.posicoes %}<span class="pos-tag">{{ pos }}</span>{% endfor %}</span>
+                  <span class="player-ovr">{{ ov }}</span>
+                  <span class="player-arrow">›</span>
                 </button>
               </form>
             {% endfor %}
@@ -116,10 +133,6 @@
         </aside>
 
         <div class="field-panel">
-          <div class="field-head">
-            <div><span class="match-label">SELEÇÃO</span><strong>{{ sorteio.selecao }}</strong></div>
-            <div><span class="match-label">COPA</span><strong>{{ sorteio.copa }}</strong></div>
-          </div>
           <div class="football-field">
             <div class="field-lines"></div>
             {% for linha in linhas_campo %}
@@ -130,16 +143,10 @@
                     <form class="field-slot-form" method="post">
                       <input type="hidden" name="acao" value="escolher">
                       <input type="hidden" name="posicao" value="{{ pos.key }}">
-                      <button class="field-slot-button" type="submit" title="Colocar em {{ pos.codigo }}">
-                        <span class="slot-circle">{{ pos.codigo }}</span>
-                        <span class="slot-name">?</span>
-                      </button>
+                      <button class="field-slot-button" type="submit" title="Colocar em {{ pos.codigo }}"><span class="slot-circle">{{ pos.codigo }}</span><span class="slot-name">?</span></button>
                     </form>
                   {% elif jogador_selecionado and not pos.jogador %}
-                    <button class="field-slot-button incompatible" type="button" disabled title="Posição incompatível">
-                      <span class="slot-circle">{{ pos.codigo }}</span>
-                      <span class="slot-name">?</span>
-                    </button>
+                    <button class="field-slot-button incompatible" type="button" disabled><span class="slot-circle">{{ pos.codigo }}</span><span class="slot-name">?</span></button>
                   {% else %}
                     <div class="player-slot {% if pos.jogador %}filled{% endif %}">
                       <span class="slot-circle">{{ pos.codigo }}</span>
@@ -157,30 +164,59 @@
           </div>
         </div>
 
-        <aside class="detail-panel">
-          <span class="setup-number">02</span>
-          {% if completo %}
-            <h2>Time completo.</h2>
-            <p>Os 11 jogadores foram escolhidos.</p>
-          {% elif jogador_selecionado %}
-            <h2>{{ jogador_selecionado.nome.split(' — ')[-1] }}</h2>
-            <p>Agora clique diretamente em uma posição livre e compatível no campo.</p>
-            <div class="selected-card">
-              <div><strong>Posições</strong><small>{% for pos in jogador_selecionado.posicoes %}{{ pos }}{% if not loop.last %} / {% endif %}{% endfor %}</small></div>
-              <div class="fake-avatar">{{ jogador_selecionado.nome.split(' — ')[-1][0] }}</div>
+        <aside class="details-panel">
+          {% if jogador_selecionado %}
+            {% set selected_ov = 96 - ((jogadores.index(jogador_selecionado) * 3) % 13) %}
+            <div class="selected-player">
+              <div class="player-avatar">{{ jogador_selecionado.nome.split(' — ')[-1][0] }}</div>
+              <div>
+                <div class="selected-name">{{ jogador_selecionado.nome.split(' — ')[-1] }}</div>
+                <div class="selected-meta">{{ bandeiras.get(sorteio.selecao, '⚽') }} {{ jogador_selecionado.posicoes|join(' / ') }}</div>
+                <div class="selected-overall">Overall {{ selected_ov }}</div>
+              </div>
+            </div>
+            <div class="selected-positions">
+              {% for pos in jogador_selecionado.posicoes %}<span class="position-choice {% if loop.first %}active{% endif %}">{{ pos }}</span>{% endfor %}
             </div>
           {% else %}
-            <h2>Escolha um jogador</h2>
-            <p>Selecione um jogador na lista. Depois clique diretamente na posição correspondente dentro do campo.</p>
-            <div class="empty-selection">Nenhum jogador selecionado.<br>Escolha um jogador para continuar.</div>
+            <div class="empty-selection">Selecione um jogador na lista ao lado.<br>Depois clique na posição compatível dentro do campo.</div>
           {% endif %}
+
+          <div class="box-title">BOX SCORE DO TIME</div>
+          <table class="team-box">
+            <thead><tr><th>POSIÇÃO</th><th>JOGADOR</th><th>OVR</th></tr></thead>
+            <tbody>
+              {% for pos in posicoes %}
+                <tr>
+                  <td><strong>{{ pos.codigo }}</strong></td>
+                  <td class="{% if pos.jogador %}occupied{% else %}empty{% endif %}">
+                    {% if pos.jogador %}
+                      {% set escolhido = jogadores|selectattr('id', 'equalto', pos.jogador)|list %}{% if escolhido %}{{ escolhido[0].nome.split(' — ')[-1] }}{% else %}{{ pos.jogador }}{% endif %}
+                    {% else %}—{% endif %}
+                  </td>
+                  <td>{% if pos.jogador %}{% set escolhido = jogadores|selectattr('id', 'equalto', pos.jogador)|list %}{% if escolhido %}{{ 96 - ((jogadores.index(escolhido[0]) * 3) % 13) }}{% endif %}{% else %}—{% endif %}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+
+          {% if not completo %}
+            <div class="reroll-block">
+              <span class="reroll-count">Não curtiu? Re-sorteie · {{ 3 - rolagens_manuais }} restantes</span>
+              <form method="post" class="reroll-form">
+                <input type="hidden" name="acao" value="sortear">
+                <button class="secondary-button" type="submit" {% if rolagens_manuais >= 3 %}disabled{% endif %}>↻ ROLAR NOVAMENTE</button>
+              </form>
+              <div class="reroll-actions">
+                <form method="post"><input type="hidden" name="acao" value="sortear"><button class="secondary-button" type="submit" {% if rolagens_manuais >= 3 %}disabled{% endif %}>↻ Outra seleção</button></form>
+                <form method="post"><input type="hidden" name="acao" value="sortear"><button class="secondary-button" type="submit" {% if rolagens_manuais >= 3 %}disabled{% endif %}>↻ Outra Copa</button></form>
+              </div>
+            </div>
+          {% endif %}
+          <a class="secondary-button back-button" href="{{ url_for('desafio') }}">← VOLTAR PARA O CAMPO</a>
         </aside>
       </section>
     {% endif %}
-
-    <div class="bottom-actions">
-      <a class="secondary-button mode-link" href="{{ url_for('desafio') }}">← ALTERAR CONFIGURAÇÃO</a>
-    </div>
   </main>
 
   <script>
