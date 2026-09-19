@@ -78,10 +78,11 @@ def partida():
   if acao=='sortear':
    tinha=bool(session.get('sorteio'))
    if not tinha or session.get('rolagens_manuais',0)<3:session['sorteio']=sorteio_novo();session['rolagens_manuais']=session.get('rolagens_manuais',0)+(1 if tinha else 0);session['pode_rerolar']=False;session.pop('jogador_selecionado',None)
-  elif acao in ('outra_selecao','outra_copa') and session.get('sorteio') and session.get('rolagens_manuais',0)<3:session['sorteio']=trocar('selecao' if acao=='outra_selecao' else 'copa');session['rolagens_manuais']+=1;session['pode_rerolar']=False;session.pop('jogador_selecionado',None)
+  elif acao in ('outra_selecao','outra_copa') and session.get('sorteio') and session.get('rolagens_manuais',0)<3:
+   session['sorteio']=trocar('selecao' if acao=='outra_selecao' else 'copa');session['pode_rerolar']=False;session.pop('jogador_selecionado',None)
   elif acao=='selecionar_jogador' and session.get('sorteio'):
    jid=request.form.get('jogador');elenco=get_elenco(session['sorteio']['selecao']);e=dict(session.get('escolhidos',{}))
-   if any(j['id']==jid for j in elenco) and jid not in e.values():session['jogador_selecionado']=jid
+   if any(j['id']==jid for j in elenco) and jid not in e.values():session['jogador_selecionado']=jid;session['pode_rerolar']=True
   elif acao=='escolher' and session.get('sorteio'):
    e=dict(session.get('escolhidos',{}));ch=request.form.get('posicao');jid=session.get('jogador_selecionado');elenco=get_elenco(session['sorteio']['selecao']);p=montar_posicoes(cfg['formacao'],e);j=next((x for x in elenco if x['id']==jid),None);pos=next((x for x in p if x['key']==ch),None)
    if j and pos and not pos['jogador'] and jid not in e.values() and pos['codigo'] in j['posicoes']:e[ch]=jid;session['escolhidos']=e;session.pop('jogador_selecionado',None);session['pode_rerolar']=True
