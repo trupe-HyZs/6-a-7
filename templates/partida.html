@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>6 a 7 — Partida</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="game-page">
+  <header class="topbar">
+    <a class="brand-link" href="{{ url_for('dashboard') }}"><div class="brand-mark small">6 <span>a</span> 7</div></a>
+    <a class="logout" href="{{ url_for('logout') }}">SAIR</a>
+  </header>
+
+  <main class="game-shell">
+    <p class="eyebrow">PARTIDA</p>
+    <h1>Seu time está pronto.</h1>
+    <p class="subtitle">Esta é a primeira versão da partida. A próxima etapa será o dado e a escolha dos jogadores.</p>
+
+    <section class="match-preview">
+      <div>
+        <span class="match-label">MODO</span>
+        <strong>{{ modo|title }}</strong>
+      </div>
+      <div>
+        <span class="match-label">FORMAÇÃO</span>
+        <strong>{{ formacao }}</strong>
+      </div>
+      <div>
+        <span class="match-label">ESTILO</span>
+        <strong>{{ estilo|title }}</strong>
+      </div>
+    </section>
+
+    <section class="field-placeholder">
+      <div class="field-title">CAMPO DE JOGO</div>
+      <div class="field-circle">6 a 7</div>
+      <p>O campo e a seleção de jogadores entram na próxima etapa.</p>
+    </section>
+
+    <a class="secondary-button mode-link" href="{{ url_for('desafio') }}">← ALTERAR CONFIGURAÇÃO</a>
+  </main>
+</body>
+</html>
