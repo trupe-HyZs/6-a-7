@@ -64,8 +64,36 @@
     .reroll-actions { display:grid; grid-template-columns:1fr 1fr; gap:5px; margin-top:5px; }
     .reroll-actions .secondary-button { margin:0; padding:7px 3px; font-size:7px; }
     .empty-selection { padding:18px 8px; text-align:center; border:1px dashed #c9c1ae; background:var(--cream); color:var(--muted); font-size:9px; line-height:1.5; }
+
+    /* Tela de sorteio / suspense */
+    .draw-screen { min-height:650px; display:grid; place-items:center; padding:30px; }
+    .draw-card { width:min(560px,100%); text-align:center; background:var(--white); border:1px solid rgba(23,23,21,.15); padding:42px 34px; box-shadow:5px 5px 0 #e4d6aa; }
+    .draw-kicker { color:var(--red); font-size:9px; letter-spacing:2px; font-weight:900; text-transform:uppercase; margin-bottom:12px; }
+    .draw-die { width:86px; height:86px; margin:0 auto 20px; display:grid; place-items:center; border:2px solid var(--black); background:var(--cream); font-size:42px; font-weight:900; box-shadow:6px 6px 0 var(--black); }
+    .draw-title { font-size:28px; font-weight:900; margin:0; }
+    .draw-subtitle { color:var(--muted); font-size:11px; margin:10px auto 24px; max-width:430px; line-height:1.5; }
+    .draw-button { width:100%; border:0; background:var(--red); color:var(--white); padding:14px; font-size:10px; font-weight:900; letter-spacing:.5px; cursor:pointer; box-shadow:4px 4px 0 var(--black); }
+    .draw-button:hover { transform:translate(-1px,-1px); }
+    .draw-button:active { transform:translate(2px,2px); box-shadow:2px 2px 0 var(--black); }
+    .draw-result { min-height:86px; display:grid; place-items:center; margin:8px auto 22px; padding:16px; border:1px solid #d7cfbc; background:var(--cream); }
+    .draw-result .draw-selection { font-size:22px; font-weight:900; }
+    .draw-result .draw-cup { display:block; color:var(--muted); font-size:10px; font-weight:800; margin-top:5px; }
+
+    /* Overlay usado durante a rolagem real */
+    .draw-overlay { position:fixed; inset:0; z-index:9999; display:none; place-items:center; background:rgba(23,23,21,.72); backdrop-filter:blur(3px); }
+    .draw-overlay.active { display:grid; }
+    .draw-overlay-card { width:min(520px,calc(100% - 36px)); background:var(--cream); border:2px solid var(--black); padding:34px 28px; text-align:center; box-shadow:9px 9px 0 var(--black); }
+    .draw-spinner { width:76px; height:76px; margin:0 auto 20px; display:grid; place-items:center; border:2px solid var(--black); background:var(--white); font-size:30px; font-weight:900; animation:dieShake .22s infinite alternate; }
+    .draw-overlay-label { font-size:9px; letter-spacing:2px; font-weight:900; color:var(--red); text-transform:uppercase; }
+    .draw-overlay-title { font-size:26px; font-weight:900; margin:8px 0 5px; }
+    .draw-overlay-selection { min-height:48px; font-size:18px; font-weight:900; }
+    .draw-overlay-cup { color:var(--muted); font-size:10px; margin-top:4px; }
+    .draw-dots::after { content:'...'; animation:dots 1s steps(4,end) infinite; }
+    @keyframes dieShake { from { transform:rotate(-7deg) translateX(-2px); } to { transform:rotate(7deg) translateX(2px); } }
+    @keyframes dots { 0% { content:''; } 25% { content:'.'; } 50% { content:'..'; } 75%,100% { content:'...'; } }
+
     @media (max-width:1000px) { .match-layout { grid-template-columns:240px minmax(360px,1fr); } .details-panel { grid-column:1 / -1; min-height:auto; } .match-top { grid-template-columns:1fr 300px; } .reroll-block { position:static; margin-top:12px; } .players-panel { padding-bottom:11px; } }
-    @media (max-width:720px) { .match-top, .match-layout { grid-template-columns:1fr; } .players-panel,.details-panel { min-height:auto; } .football-field { min-height:540px; } .reroll-block { position:static; } .players-panel { padding-bottom:11px; } }
+    @media (max-width:720px) { .match-top, .match-layout { grid-template-columns:1fr; } .players-panel,.details-panel { min-height:auto; } .football-field { min-height:540px; } .reroll-block { position:static; } .players-panel { padding-bottom:11px; } .draw-screen { min-height:540px; } }
   </style>
 </head>
 <body class="game-page">
@@ -121,10 +149,10 @@
           {% if not completo %}
             <div class="reroll-block">
               <span class="reroll-count">Não curtiu? Re-sorteie · {{ 3 - rolagens_manuais }} restantes</span>
-              <form method="post" class="reroll-form"><input type="hidden" name="acao" value="sortear"><button class="secondary-button" type="submit" {% if rolagens_manuais >= 3 %}disabled{% endif %}>↻ ROLAR NOVAMENTE</button></form>
+              <form method="post" class="reroll-form draw-trigger"><input type="hidden" name="acao" value="sortear"><button class="secondary-button" type="submit" {% if rolagens_manuais >= 3 %}disabled{% endif %}>↻ ROLAR NOVAMENTE</button></form>
               <div class="reroll-actions">
-                <form method="post"><input type="hidden" name="acao" value="sortear"><button class="secondary-button" type="submit" {% if rolagens_manuais >= 3 %}disabled{% endif %}>↻ Outra seleção</button></form>
-                <form method="post"><input type="hidden" name="acao" value="sortear"><button class="secondary-button" type="submit" {% if rolagens_manuais >= 3 %}disabled{% endif %}>↻ Outra Copa</button></form>
+                <form method="post" class="draw-trigger"><input type="hidden" name="acao" value="sortear"><button class="secondary-button" type="submit" {% if rolagens_manuais >= 3 %}disabled{% endif %}>↻ Outra seleção</button></form>
+                <form method="post" class="draw-trigger"><input type="hidden" name="acao" value="sortear"><button class="secondary-button" type="submit" {% if rolagens_manuais >= 3 %}disabled{% endif %}>↻ Outra Copa</button></form>
               </div>
             </div>
           {% endif %}
@@ -138,7 +166,7 @@
                 {% for pos in linha %}
                   {% set compatível = jogador_selecionado and pos.codigo in jogador_selecionado.posicoes %}
                   {% if jogador_selecionado and not pos.jogador and compatível %}
-                    <form class="field-slot-form" method="post"><input type="hidden" name="acao" value="escolher"><input type="hidden" name="posicao" value="{{ pos.key }}"><button class="field-slot-button" type="submit" title="Colocar em {{ pos.codigo }}"><span class="slot-circle">{{ pos.codigo }}</span><span class="slot-name">?</span></button></form>
+                    <form class="field-slot-form draw-trigger" method="post"><input type="hidden" name="acao" value="escolher"><input type="hidden" name="posicao" value="{{ pos.key }}"><button class="field-slot-button" type="submit" title="Colocar em {{ pos.codigo }}"><span class="slot-circle">{{ pos.codigo }}</span><span class="slot-name">?</span></button></form>
                   {% elif jogador_selecionado and not pos.jogador %}
                     <button class="field-slot-button incompatible" type="button" disabled><span class="slot-circle">{{ pos.codigo }}</span><span class="slot-name">?</span></button>
                   {% else %}
@@ -167,8 +195,92 @@
           </tbody></table>
         </aside>
       </section>
+    {% else %}
+      <section class="draw-screen">
+        <div class="draw-card">
+          <div class="draw-kicker">NOVA RODADA</div>
+          <div class="draw-die" id="idle-die">?</div>
+          <h1 class="draw-title">Pronto para sortear?</h1>
+          <p class="draw-subtitle">Role o dado para descobrir a seleção e a Copa que vão entrar nesta rodada.</p>
+          <div class="draw-result" id="idle-result"><div><div class="draw-selection">?</div><span class="draw-cup">Aguardando o sorteio</span></div></div>
+          <form method="post" class="draw-trigger"><input type="hidden" name="acao" value="sortear"><button class="draw-button" type="submit">ROLAR O DADO →</button></form>
+        </div>
+      </section>
     {% endif %}
   </main>
-  <script>function filtrarJogadores(valor){const termo=valor.toLowerCase().trim();document.querySelectorAll('.player-item').forEach(item=>{item.style.display=item.dataset.name.includes(termo)?'':'none';});}</script>
+
+  <div class="draw-overlay" id="draw-overlay" aria-hidden="true">
+    <div class="draw-overlay-card">
+      <div class="draw-spinner" id="draw-spinner">?</div>
+      <div class="draw-overlay-label">SORTEANDO<span class="draw-dots"></span></div>
+      <div class="draw-overlay-title">Descobrindo a rodada</div>
+      <div class="draw-overlay-selection" id="draw-overlay-selection">Brasil</div>
+      <div class="draw-overlay-cup" id="draw-overlay-cup">Copa 2002</div>
+    </div>
+  </div>
+
+  <script>
+    const sorteiosAnimacao = [
+      ['Brasil','Copa 2002'], ['França','Copa 1998'], ['Argentina','Copa 1986'],
+      ['Itália','Copa 2006'], ['Alemanha','Copa 2014'], ['Portugal','Copa 1966'],
+      ['Holanda','Copa 1974'], ['Croácia','Copa 2018'], ['Bélgica','Copa 1986'],
+      ['Espanha','Copa 2010'], ['Inglaterra','Copa 1966'], ['Uruguai','Copa 1950']
+    ];
+
+    let animacaoRodando = false;
+
+    function filtrarJogadores(valor){
+      const termo=valor.toLowerCase().trim();
+      document.querySelectorAll('.player-item').forEach(item=>{
+        item.style.display=item.dataset.name.includes(termo)?'':'none';
+      });
+    }
+
+    function iniciarSuspense(form) {
+      if (animacaoRodando) return;
+      animacaoRodando = true;
+      const overlay = document.getElementById('draw-overlay');
+      const selection = document.getElementById('draw-overlay-selection');
+      const cup = document.getElementById('draw-overlay-cup');
+      const spinner = document.getElementById('draw-spinner');
+      const button = form.querySelector('button[type="submit"]');
+      if (button) button.disabled = true;
+      overlay.classList.add('active');
+      overlay.setAttribute('aria-hidden','false');
+
+      let index = Math.floor(Math.random() * sorteiosAnimacao.length);
+      let velocidade = 90;
+      let passos = 0;
+      const totalPassos = 24 + Math.floor(Math.random() * 9);
+
+      function proximo() {
+        const item = sorteiosAnimacao[index % sorteiosAnimacao.length];
+        selection.textContent = item[0];
+        cup.textContent = item[1];
+        spinner.textContent = String((passos % 6) + 1);
+        passos++;
+        index += 1 + Math.floor(Math.random() * 2);
+
+        if (passos >= totalPassos) {
+          selection.textContent = 'SAIU!';
+          cup.textContent = `${item[0]} · ${item[1]}`;
+          spinner.textContent = '✓';
+          setTimeout(() => form.submit(), 650);
+          return;
+        }
+
+        velocidade = Math.min(260, velocidade + 7);
+        setTimeout(proximo, velocidade);
+      }
+      proximo();
+    }
+
+    document.querySelectorAll('.draw-trigger').forEach(form => {
+      form.addEventListener('submit', function(event) {
+        event.preventDefault();
+        iniciarSuspense(this);
+      });
+    });
+  </script>
 </body>
 </html>
