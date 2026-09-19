@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>6 a 7 — Cadastro</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="auth-page">
+  <main class="auth-card">
+    <div class="brand-mark">6<span>—</span>7</div>
+    <p class="eyebrow">MONTE SEU TIME DOS SONHOS</p>
+    <h1>Criar conta</h1>
+    <p class="subtitle">Sem e-mail. Apenas usuário e senha.</p>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <div class="message {{ category }}">{{ message }}</div>
+      {% endfor %}
+    {% endwith %}
+
+    <form method="post" class="auth-form">
+      <label for="username">Nome de usuário</label>
+      <input id="username" name="username" type="text" minlength="3" autocomplete="username" required>
+
+      <label for="password">Senha</label>
+      <input id="password" name="password" type="password" minlength="6" autocomplete="new-password" required>
+
+      <label for="confirm_password">Confirmar senha</label>
+      <input id="confirm_password" name="confirm_password" type="password" minlength="6" autocomplete="new-password" required>
+
+      <button type="submit" class="primary-button">CRIAR CONTA</button>
+    </form>
+
+    <p class="switch-link">Já possui uma conta? <a href="{{ url_for('login') }}">Entrar</a></p>
+  </main>
+</body>
+</html>
