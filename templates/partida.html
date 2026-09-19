@@ -47,6 +47,9 @@
     .reroll-form { margin-top:14px; }
     .reroll-form .secondary-button { width:100%; margin-top:0; }
     .reroll-count { display:block; text-align:center; margin-top:7px; color:var(--muted); font-size:9px; font-weight:800; }
+    .reroll-top { margin:0 0 14px; padding-bottom:12px; border-bottom:1px solid #c9c1ae; }
+    .reroll-top .reroll-form { margin-top:0; }
+    .reroll-top .reroll-count { margin-bottom:8px; }
     .bottom-actions { display:flex; gap:10px; margin-top:18px; }
     .bottom-actions .secondary-button { margin-top:0; }
     @media (max-width:1050px) { .selection-layout { grid-template-columns:minmax(220px,.8fr) minmax(360px,1.2fr); } .detail-panel { grid-column:1 / -1; min-height:auto; } }
@@ -89,6 +92,13 @@
 
       <section class="selection-layout">
         <aside class="selection-panel">
+          <div class="reroll-top">
+            <span class="reroll-count">Não curtiu? Re-sorteie · {{ 3 - rolagens_manuais }} restantes</span>
+            <form method="post" class="reroll-form">
+              <input type="hidden" name="acao" value="sortear">
+              <button class="secondary-button" type="submit" {% if rolagens_manuais >= 3 or completo %}disabled{% endif %}>↻ ROLAR NOVAMENTE</button>
+            </form>
+          </div>
           <div class="panel-title"><h2>Escolha um jogador</h2></div>
           <input class="search-box" type="search" placeholder="Buscar jogador..." oninput="filtrarJogadores(this.value)">
           <div class="all-players" id="player-list">
@@ -164,12 +174,6 @@
             <p>Selecione um jogador na lista. Depois clique diretamente na posição correspondente dentro do campo.</p>
             <div class="empty-selection">Nenhum jogador selecionado.<br>Escolha um jogador para continuar.</div>
           {% endif %}
-
-          <form method="post" class="reroll-form">
-            <input type="hidden" name="acao" value="sortear">
-            <button class="secondary-button" type="submit" {% if rolagens_manuais >= 3 or completo %}disabled{% endif %}>ROLAR NOVAMENTE</button>
-            <span class="reroll-count">{{ rolagens_manuais }}/3 rolagens manuais</span>
-          </form>
         </aside>
       </section>
     {% endif %}
