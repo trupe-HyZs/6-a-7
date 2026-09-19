@@ -14,7 +14,6 @@
     .selection-panel, .detail-panel { padding:18px; }
     .panel-title { display:flex; justify-content:space-between; align-items:baseline; gap:10px; margin-bottom:12px; }
     .panel-title h2 { font-size:21px; }
-    .panel-title span { color:var(--muted); font-size:9px; font-weight:900; letter-spacing:1px; }
     .search-box { width:100%; border:1px solid #c9c1ae; background:var(--cream); padding:10px; font-size:12px; margin-bottom:9px; outline:none; }
     .all-players { max-height:570px; overflow-y:auto; padding-right:4px; display:grid; gap:6px; }
     .player-select-form { margin:0; }
@@ -30,6 +29,13 @@
     .field-head > div { display:grid; gap:4px; }
     .field-head strong { font-size:17px; }
     .football-field { min-height:570px; }
+    .field-slot-form { margin:0; display:contents; }
+    .field-slot-button { appearance:none; border:0; padding:0; background:transparent; color:inherit; font:inherit; display:grid; justify-items:center; gap:4px; cursor:pointer; }
+    .field-slot-button:disabled { cursor:not-allowed; }
+    .field-slot-button .slot-circle { transition:.15s ease; }
+    .field-slot-button:hover:not(:disabled) .slot-circle { transform:scale(1.08); background:var(--white); color:var(--black); }
+    .field-slot-button:hover:not(:disabled) .slot-name { background:var(--black); color:var(--white); }
+    .field-slot-button.incompatible { opacity:.38; cursor:not-allowed; }
     .detail-panel { min-height:570px; }
     .detail-panel h2 { font-size:26px; margin-bottom:8px; }
     .detail-panel > p { color:var(--muted); font-size:12px; line-height:1.5; margin-top:0; }
@@ -37,12 +43,6 @@
     .selected-card strong { display:block; font-size:16px; }
     .selected-card small { display:block; margin-top:4px; color:var(--muted); font-size:9px; font-weight:800; }
     .fake-avatar { width:58px; height:58px; display:grid; place-items:center; border:1px solid #c9c1ae; background:var(--white); font-size:22px; font-weight:900; }
-    .position-heading { margin:18px 0 8px; font-size:10px; letter-spacing:2px; font-weight:900; color:var(--muted); }
-    .position-buttons { display:grid; grid-template-columns:repeat(2,1fr); gap:7px; }
-    .position-form { margin:0; }
-    .position-button { width:100%; padding:10px 7px; border:1px solid var(--black); background:var(--white); color:var(--black); font-size:10px; font-weight:900; cursor:pointer; }
-    .position-button:hover:not(:disabled) { background:var(--black); color:var(--white); }
-    .position-button:disabled { opacity:.35; cursor:not-allowed; background:#d9d2c3; color:#555; }
     .empty-selection { padding:28px 6px; text-align:center; border:1px dashed #c9c1ae; background:var(--cream); color:var(--muted); font-size:11px; line-height:1.5; }
     .reroll-form { margin-top:14px; }
     .reroll-form .secondary-button { width:100%; margin-top:0; }
@@ -79,11 +79,11 @@
           </div>
           <form method="post"><input type="hidden" name="acao" value="sortear"><button class="primary-button roll-button" type="submit">ROLAR O DADO →</button></form>
         </div>
-        <div class="draw-info"><span class="setup-number">01</span><h2>Monte sua seleção</h2><p>O sorteio define o universo de jogadores desta rodada. Depois escolha qualquer jogador e coloque-o somente em uma posição compatível e livre.</p></div>
+        <div class="draw-info"><span class="setup-number">01</span><h2>Monte sua seleção</h2><p>O sorteio define a seleção da rodada. Escolha qualquer jogador e coloque-o diretamente em uma posição compatível e livre no campo.</p></div>
       </section>
     {% else %}
       <div class="builder-header">
-        <div><h2>{{ sorteio.selecao }} · {{ sorteio.copa }}</h2><p>Escolha os jogadores e monte sua formação no campo.</p></div>
+        <div><h2>{{ sorteio.selecao }} · {{ sorteio.copa }}</h2><p>{% if jogador_selecionado %}Clique no campo em uma posição compatível para colocar o jogador.{% else %}Escolha um jogador na lista para começar.{% endif %}</p></div>
       </div>
 
       <section class="selection-layout">
@@ -114,15 +114,32 @@
             {% for linha in linhas_campo %}
               <div class="field-row row-{{ loop.index }} count-{{ linha|length }}">
                 {% for pos in linha %}
-                  <div class="player-slot {% if pos.jogador %}filled{% endif %}">
-                    <span class="slot-circle">{{ pos.codigo }}</span>
-                    <span class="slot-name">
-                      {% if pos.jogador %}
-                        {% set escolhido = jogadores|selectattr('id', 'equalto', pos.jogador)|list %}
-                        {% if escolhido %}{{ escolhido[0].nome.split(' — ')[-1] }}{% else %}{{ pos.jogador }}{% endif %}
-                      {% else %}?{% endif %}
-                    </span>
-                  </div>
+                  {% set compatível = jogador_selecionado and pos.codigo in jogador_selecionado.posicoes %}
+                  {% if jogador_selecionado and not pos.jogador and compatível %}
+                    <form class="field-slot-form" method="post">
+                      <input type="hidden" name="acao" value="escolher">
+                      <input type="hidden" name="posicao" value="{{ pos.key }}">
+                      <button class="field-slot-button" type="submit" title="Colocar em {{ pos.codigo }}">
+                        <span class="slot-circle">{{ pos.codigo }}</span>
+                        <span class="slot-name">?</span>
+                      </button>
+                    </form>
+                  {% elif jogador_selecionado and not pos.jogador %}
+                    <button class="field-slot-button incompatible" type="button" disabled title="Posição incompatível">
+                      <span class="slot-circle">{{ pos.codigo }}</span>
+                      <span class="slot-name">?</span>
+                    </button>
+                  {% else %}
+                    <div class="player-slot {% if pos.jogador %}filled{% endif %}">
+                      <span class="slot-circle">{{ pos.codigo }}</span>
+                      <span class="slot-name">
+                        {% if pos.jogador %}
+                          {% set escolhido = jogadores|selectattr('id', 'equalto', pos.jogador)|list %}
+                          {% if escolhido %}{{ escolhido[0].nome.split(' — ')[-1] }}{% else %}{{ pos.jogador }}{% endif %}
+                        {% else %}?{% endif %}
+                      </span>
+                    </div>
+                  {% endif %}
                 {% endfor %}
               </div>
             {% endfor %}
@@ -135,25 +152,15 @@
             <h2>Time completo.</h2>
             <p>Os 11 jogadores foram escolhidos.</p>
           {% elif jogador_selecionado %}
-            <h2>Escolha a posição</h2>
-            <p>O jogador só pode ser colocado nas posições compatíveis. Posições ocupadas ficam indisponíveis.</p>
+            <h2>{{ jogador_selecionado.nome.split(' — ')[-1] }}</h2>
+            <p>Agora clique diretamente em uma posição livre e compatível no campo.</p>
             <div class="selected-card">
-              <div><strong>{{ jogador_selecionado.nome.split(' — ')[-1] }}</strong><small>{% for pos in jogador_selecionado.posicoes %}{{ pos }}{% if not loop.last %} / {% endif %}{% endfor %}</small></div>
+              <div><strong>Posições</strong><small>{% for pos in jogador_selecionado.posicoes %}{{ pos }}{% if not loop.last %} / {% endif %}{% endfor %}</small></div>
               <div class="fake-avatar">{{ jogador_selecionado.nome.split(' — ')[-1][0] }}</div>
-            </div>
-            <div class="position-heading">POSIÇÕES DISPONÍVEIS</div>
-            <div class="position-buttons">
-              {% for opcao in jogador_selecionado.opcoes %}
-                <form class="position-form" method="post">
-                  <input type="hidden" name="acao" value="escolher">
-                  <input type="hidden" name="posicao" value="{{ opcao.key }}">
-                  <button class="position-button" type="submit" {% if opcao.ocupada %}disabled{% endif %}>{{ opcao.codigo }}{% if opcao.codigo in ['ZAG','MC','CA'] %} {{ opcao.key.split('_')[-1] }}{% endif %}{% if opcao.ocupada %} · OCUPADA{% endif %}</button>
-                </form>
-              {% endfor %}
             </div>
           {% else %}
             <h2>Escolha um jogador</h2>
-            <p>Selecione um jogador na lista. Depois aparecerão aqui somente as posições que ele pode ocupar.</p>
+            <p>Selecione um jogador na lista. Depois clique diretamente na posição correspondente dentro do campo.</p>
             <div class="empty-selection">Nenhum jogador selecionado.<br>Escolha um jogador para continuar.</div>
           {% endif %}
 
