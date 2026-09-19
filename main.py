@@ -114,6 +114,24 @@ def dashboard():
     return render_template("dashboard.html", username=session["username"])
 
 
+@app.route("/desafio", methods=("GET", "POST"))
+@login_required
+def desafio():
+    if request.method == "POST":
+        modo = request.form.get("modo", "normal")
+        formacao = request.form.get("formacao", "4-3-3")
+        estilo = request.form.get("estilo", "equilibrado")
+        return render_template(
+            "partida.html",
+            username=session["username"],
+            modo=modo,
+            formacao=formacao,
+            estilo=estilo,
+        )
+
+    return render_template("desafio.html")
+
+
 @app.route("/logout")
 def logout():
     session.clear()
