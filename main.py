@@ -41,7 +41,6 @@ POSICOES_NOMES = {
     "MD": "Meia direito", "ALA": "Ala", "PE": "Ponta esquerda", "PD": "Ponta direita", "CA": "Centroavante"
 }
 
-# Base provisória para testar a mecânica. Depois substituiremos por elencos históricos reais.
 MODELO_ELENCO = [
     ("GOL 01", ["GOL"]), ("GOL 02", ["GOL"]), ("GOL 03", ["GOL"]),
     ("DEF 01", ["ZAG", "LE"]), ("DEF 02", ["ZAG"]), ("DEF 03", ["ZAG", "LD"]),
@@ -216,12 +215,14 @@ def partida():
     if request.method == "POST":
         acao = request.form.get("acao", "sortear")
         if acao == "sortear":
+            selecao_anterior = session.get("sorteio", {}).get("selecao")
+            opcoes_selecao = [s for s in SELECOES if s != selecao_anterior] if selecao_anterior else SELECOES
             session["sorteio"] = {
                 "dado": random.randint(1, 6),
-                "selecao": random.choice(SELECOES),
+                "selecao": random.choice(opcoes_selecao),
                 "copa": random.choice(COPAS),
             }
-            session.pop("escolhidos", None)
+            # A escalação permanece. Apenas a seleção/copa da próxima rodada muda.
             session.pop("jogador_selecionado", None)
 
         elif acao == "selecionar_jogador" and session.get("sorteio"):
