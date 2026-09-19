@@ -18,14 +18,13 @@
     .search-box { width:100%; border:1px solid #c9c1ae; background:var(--cream); padding:10px; font-size:12px; margin-bottom:9px; outline:none; }
     .all-players { max-height:570px; overflow-y:auto; padding-right:4px; display:grid; gap:6px; }
     .player-select-form { margin:0; }
-    .player-select { width:100%; border:1px solid #c9c1ae; background:var(--cream); padding:9px; display:grid; grid-template-columns:25px 1fr auto; gap:7px; align-items:center; text-align:left; cursor:pointer; }
-    .player-select:hover:not(:disabled), .player-select.selected { background:var(--black); color:var(--white); }
+    .player-select { width:100%; border:1px solid #c9c1ae; background:var(--cream); padding:9px; display:grid; grid-template-columns:25px 1fr; gap:7px; align-items:center; text-align:left; cursor:pointer; }
+    .player-select:hover:not(:disabled) { background:var(--black); color:var(--white); }
     .player-select:disabled { opacity:.38; cursor:not-allowed; }
     .player-select strong { display:block; font-size:11px; }
     .player-select small { display:block; margin-top:3px; font-size:8px; color:var(--muted); font-weight:700; }
-    .player-select:hover small, .player-select.selected small { color:#ddd; }
+    .player-select:hover small { color:#ddd; }
     .player-number { font-size:9px; font-weight:900; color:var(--red); }
-    .player-select-status { font-size:7px; font-weight:900; }
     .field-panel { padding:14px; }
     .field-head { display:flex; justify-content:space-between; gap:16px; padding:3px 6px 12px; }
     .field-head > div { display:grid; gap:4px; }
@@ -44,9 +43,6 @@
     .position-button { width:100%; padding:10px 7px; border:1px solid var(--black); background:var(--white); color:var(--black); font-size:10px; font-weight:900; cursor:pointer; }
     .position-button:hover:not(:disabled) { background:var(--black); color:var(--white); }
     .position-button:disabled { opacity:.35; cursor:not-allowed; background:#d9d2c3; color:#555; }
-    .occupied-list { margin-top:18px; padding-top:12px; border-top:1px solid #d4cbb9; }
-    .occupied-list div { display:grid; grid-template-columns:42px 1fr; gap:8px; padding:5px 0; font-size:9px; }
-    .occupied-list b { color:var(--muted); }
     .empty-selection { padding:28px 6px; text-align:center; border:1px dashed #c9c1ae; background:var(--cream); color:var(--muted); font-size:11px; line-height:1.5; }
     .reroll-form { margin-top:14px; }
     .reroll-form .secondary-button { width:100%; margin-top:0; }
@@ -87,23 +83,21 @@
       </section>
     {% else %}
       <div class="builder-header">
-        <div><h2>{{ sorteio.selecao }} · {{ sorteio.copa }}</h2><p>Selecione um jogador na lista e depois escolha a posição dele no campo.</p></div>
-        <span class="match-label">{{ jogadores|length }} JOGADORES DISPONÍVEIS</span>
+        <div><h2>{{ sorteio.selecao }} · {{ sorteio.copa }}</h2><p>Escolha os jogadores e monte sua formação no campo.</p></div>
       </div>
 
       <section class="selection-layout">
         <aside class="selection-panel">
-          <div class="panel-title"><h2>Jogadores</h2><span>{{ jogadores|length }}/{{ jogadores|length }}</span></div>
+          <div class="panel-title"><h2>Escolha um jogador</h2></div>
           <input class="search-box" type="search" placeholder="Buscar jogador..." oninput="filtrarJogadores(this.value)">
           <div class="all-players" id="player-list">
             {% for jogador in jogadores %}
               <form class="player-select-form player-item" method="post" data-name="{{ jogador.nome|lower }}">
                 <input type="hidden" name="acao" value="selecionar_jogador">
                 <input type="hidden" name="jogador" value="{{ jogador.id }}">
-                <button class="player-select {% if jogador.selecionado %}selected{% endif %}" type="submit" {% if jogador.escolhido or not jogador.tem_posicao_livre %}disabled{% endif %}>
+                <button class="player-select" type="submit" {% if jogador.escolhido or not jogador.tem_posicao_livre %}disabled{% endif %}>
                   <span class="player-number">#{{ loop.index }}</span>
                   <span><strong>{{ jogador.nome.split(' — ')[-1] }}</strong><small>{% for pos in jogador.posicoes %}{{ pos }}{% if not loop.last %} / {% endif %}{% endfor %}</small></span>
-                  <span class="player-select-status">{% if jogador.escolhido %}ESCOLHIDO{% elif not jogador.tem_posicao_livre %}SEM VAGA{% else %}→{% endif %}</span>
                 </button>
               </form>
             {% endfor %}
@@ -159,17 +153,9 @@
             </div>
           {% else %}
             <h2>Escolha um jogador</h2>
-            <p>Selecione um jogador na lista ao lado. Depois aparecerão aqui somente as posições que ele pode ocupar.</p>
+            <p>Selecione um jogador na lista. Depois aparecerão aqui somente as posições que ele pode ocupar.</p>
             <div class="empty-selection">Nenhum jogador selecionado.<br>Escolha um jogador para continuar.</div>
           {% endif %}
-
-          <div class="occupied-list">
-            <div><b>OCUPADAS</b><span>{% set ocupadas = posicoes|selectattr('jogador')|list %}{{ ocupadas|length }} / 11</span></div>
-            {% for pos in ocupadas %}
-              {% set escolhido = jogadores|selectattr('id', 'equalto', pos.jogador)|list %}
-              <div><b>{{ pos.codigo }}</b><span>{% if escolhido %}{{ escolhido[0].nome.split(' — ')[-1] }}{% else %}—{% endif %}</span></div>
-            {% endfor %}
-          </div>
 
           <form method="post" class="reroll-form"><input type="hidden" name="acao" value="sortear"><button class="secondary-button" type="submit">ROLAR NOVAMENTE</button></form>
         </aside>
@@ -185,7 +171,7 @@
     function filtrarJogadores(valor) {
       const termo = valor.toLowerCase().trim();
       document.querySelectorAll('.player-item').forEach(item => {
-        item.style.display = item.dataset.name.includes(termo) ? '' : 'block';
+        item.style.display = item.dataset.name.includes(termo) ? '' : 'none';
       });
     }
   </script>
