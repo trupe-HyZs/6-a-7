@@ -23,6 +23,7 @@ FORMACOES = {
     "4-5-1": ["GOL", "LE", "ZAG", "ZAG", "LD", "ME", "MC", "MEI", "MC", "MD", "CA"],
     "3-4-3": ["GOL", "ZAG", "ZAG", "ZAG", "ME", "MC", "MC", "MD", "PE", "CA", "PD"],
 }
+
 CAMPO_LINHAS = {
     "4-3-3": [["PE", "CA", "PD"], ["MC", "MEI", "MC"], ["LE", "ZAG", "ZAG", "LD"], ["GOL"]],
     "4-4-2": [["CA", "CA"], ["ME", "MC", "MC", "MD"], ["LE", "ZAG", "ZAG", "LD"], ["GOL"]],
@@ -33,7 +34,31 @@ CAMPO_LINHAS = {
     "4-5-1": [["CA"], ["ME", "MC", "MEI", "MC", "MD"], ["LE", "ZAG", "ZAG", "LD"], ["GOL"]],
     "3-4-3": [["PE", "CA", "PD"], ["ME", "MC", "MC", "MD"], ["ZAG", "ZAG", "ZAG"], ["GOL"]],
 }
-POSICOES_NOMES = {"GOL": "Goleiro", "LE": "Lateral esquerdo", "LD": "Lateral direito", "ZAG": "Zagueiro", "VOL": "Volante", "MC": "Meio-campista", "MEI": "Meia", "ME": "Meia esquerdo", "MD": "Meia direito", "ALA": "Ala", "PE": "Ponta esquerda", "PD": "Ponta direita", "CA": "Centroavante"}
+
+POSICOES_NOMES = {
+    "GOL": "Goleiro", "LE": "Lateral esquerdo", "LD": "Lateral direito", "ZAG": "Zagueiro",
+    "VOL": "Volante", "MC": "Meio-campista", "MEI": "Meia", "ME": "Meia esquerdo",
+    "MD": "Meia direito", "ALA": "Ala", "PE": "Ponta esquerda", "PD": "Ponta direita", "CA": "Centroavante"
+}
+
+# Base provisória para testar a mecânica. Depois substituiremos por elencos históricos reais.
+MODELO_ELENCO = [
+    ("GOL 01", ["GOL"]), ("GOL 02", ["GOL"]), ("GOL 03", ["GOL"]),
+    ("DEF 01", ["ZAG", "LE"]), ("DEF 02", ["ZAG"]), ("DEF 03", ["ZAG", "LD"]),
+    ("DEF 04", ["ZAG"]), ("DEF 05", ["LE", "ALA"]), ("DEF 06", ["LD", "ALA"]),
+    ("MEIO 01", ["VOL", "MC"]), ("MEIO 02", ["VOL", "MC"]), ("MEIO 03", ["MC", "MEI"]),
+    ("MEIO 04", ["MC", "MEI"]), ("MEIO 05", ["ME", "PE"]), ("MEIO 06", ["MD", "PD"]),
+    ("ATA 01", ["PE", "PD"]), ("ATA 02", ["PE", "CA"]), ("ATA 03", ["PD", "CA"]),
+    ("ATA 04", ["CA"]), ("ATA 05", ["CA"]), ("ATA 06", ["PD", "CA"]),
+    ("ATA 07", ["PE", "CA"]), ("MEIO 07", ["MEI", "ME", "MD"]),
+]
+
+
+def get_elenco(selecao):
+    return [
+        {"id": f"{selecao}-{i}", "nome": f"{selecao} — {nome}", "posicoes": posicoes}
+        for i, (nome, posicoes) in enumerate(MODELO_ELENCO, start=1)
+    ]
 
 
 def get_db():
@@ -65,17 +90,17 @@ def login_required(view):
     return wrapped_view
 
 
-def jogadores_da_rodada(selecao, posicao):
-    nome = POSICOES_NOMES.get(posicao, posicao)
-    return [f"{selecao} — {nome} 0{i}" for i in range(1, 7)]
-
-
 def montar_posicoes(formacao, escolhidos):
     resultado, contagem = [], {}
     for posicao in FORMACOES.get(formacao, FORMACOES["4-3-3"]):
         contagem[posicao] = contagem.get(posicao, 0) + 1
         chave = f"{posicao}_{contagem[posicao]}"
-        resultado.append({"key": chave, "codigo": posicao, "nome": POSICOES_NOMES.get(posicao, posicao), "jogador": escolhidos.get(chave)})
+        resultado.append({
+            "key": chave,
+            "codigo": posicao,
+            "nome": POSICOES_NOMES.get(posicao, posicao),
+            "jogador": escolhidos.get(chave),
+        })
     return resultado
 
 
@@ -95,17 +120,33 @@ def montar_linhas_campo(formacao, posicoes):
 
 def proxima_posicao(formacao, escolhidos):
     for posicao in FORMACOES.get(formacao, FORMACOES["4-3-3"]):
+        total = FORMACOES.get(formacao, []).count(posicao)
         usados = sum(1 for chave in escolhidos if chave.startswith(f"{posicao}_"))
-        if usados < FORMACOES.get(formacao, []).count(posicao):
+        if usados < total:
             return posicao
     return None
 
 
-def proxima_chave(posicoes, codigo):
-    for item in posicoes:
-        if item["codigo"] == codigo and not item["jogador"]:
-            return item["key"]
-    return None
+def preparar_jogadores(elenco, escolhidos, posicoes):
+    usados = set(escolhidos.values())
+    resultado = []
+    for jogador in elenco:
+        opcoes = []
+        for pos in posicoes:
+            if pos["codigo"] in jogador["posicoes"]:
+                opcoes.append({
+                    "key": pos["key"],
+                    "codigo": pos["codigo"],
+                    "label": pos["codigo"] if pos["codigo"] in ("GOL", "ZAG", "MC", "CA") else pos["codigo"],
+                    "ocupada": bool(pos["jogador"]),
+                })
+        resultado.append({
+            **jogador,
+            "escolhido": jogador["id"] in usados,
+            "opcoes": opcoes,
+            "tem_posicao_livre": any(not opcao["ocupada"] for opcao in opcoes),
+        })
+    return resultado
 
 
 @app.route("/")
@@ -144,15 +185,22 @@ def login():
 
 @app.route("/dashboard")
 @login_required
-def dashboard(): return render_template("dashboard.html", username=session["username"])
+def dashboard():
+    return render_template("dashboard.html", username=session["username"])
 
 
 @app.route("/desafio", methods=("GET", "POST"))
 @login_required
 def desafio():
     if request.method == "POST":
-        session["partida"] = {"modo": request.form.get("modo", "normal"), "formacao": request.form.get("formacao", "4-3-3"), "estilo": request.form.get("estilo", "equilibrado")}
-        session.pop("sorteio", None); session.pop("escolhidos", None); return redirect(url_for("partida"))
+        session["partida"] = {
+            "modo": request.form.get("modo", "normal"),
+            "formacao": request.form.get("formacao", "4-3-3"),
+            "estilo": request.form.get("estilo", "equilibrado"),
+        }
+        session.pop("sorteio", None)
+        session.pop("escolhidos", None)
+        return redirect(url_for("partida"))
     return render_template("desafio.html")
 
 
@@ -160,27 +208,67 @@ def desafio():
 @login_required
 def partida():
     partida_config = session.get("partida")
-    if not partida_config: return redirect(url_for("desafio"))
+    if not partida_config:
+        return redirect(url_for("desafio"))
+
     if request.method == "POST":
         acao = request.form.get("acao", "sortear")
         if acao == "sortear":
-            session["sorteio"] = {"dado": random.randint(1, 6), "selecao": random.choice(SELECOES), "copa": random.choice(COPAS)}; session.pop("escolhidos", None)
+            session["sorteio"] = {
+                "dado": random.randint(1, 6),
+                "selecao": random.choice(SELECOES),
+                "copa": random.choice(COPAS),
+            }
+            session.pop("escolhidos", None)
+
         elif acao == "escolher" and session.get("sorteio"):
-            escolhidos = dict(session.get("escolhidos", {})); chave = request.form.get("posicao"); jogador = request.form.get("jogador")
-            if chave and jogador: escolhidos[chave] = jogador; session["escolhidos"] = escolhidos
-    sorteio = session.get("sorteio"); escolhidos = session.get("escolhidos", {})
+            escolhidos = dict(session.get("escolhidos", {}))
+            chave = request.form.get("posicao")
+            jogador_id = request.form.get("jogador")
+            sorteio = session["sorteio"]
+            elenco = get_elenco(sorteio["selecao"])
+            posicoes = montar_posicoes(partida_config["formacao"], escolhidos)
+            jogador = next((item for item in elenco if item["id"] == jogador_id), None)
+            posicao = next((item for item in posicoes if item["key"] == chave), None)
+            jogador_ja_escolhido = jogador_id in escolhidos.values() if jogador_id else True
+
+            if jogador and posicao and not posicao["jogador"] and not jogador_ja_escolhido and posicao["codigo"] in jogador["posicoes"]:
+                escolhidos[chave] = jogador_id
+                session["escolhidos"] = escolhidos
+
+    sorteio = session.get("sorteio")
+    escolhidos = session.get("escolhidos", {})
     posicoes = montar_posicoes(partida_config["formacao"], escolhidos) if sorteio else []
     linhas_campo = montar_linhas_campo(partida_config["formacao"], posicoes) if sorteio else []
     proxima = proxima_posicao(partida_config["formacao"], escolhidos) if sorteio else None
-    jogadores = jogadores_da_rodada(sorteio["selecao"], proxima) if sorteio and proxima else []
     completo = sorteio is not None and proxima is None
-    return render_template("partida.html", username=session["username"], modo=partida_config["modo"], formacao=partida_config["formacao"], estilo=partida_config["estilo"], sorteio=sorteio, posicoes=posicoes, linhas_campo=linhas_campo, jogadores=jogadores, proxima=proxima, proxima_key=proxima_chave(posicoes, proxima) if proxima else None, proxima_nome=POSICOES_NOMES.get(proxima, proxima) if proxima else None, completo=completo)
+    elenco = get_elenco(sorteio["selecao"]) if sorteio else []
+    jogadores = preparar_jogadores(elenco, escolhidos, posicoes) if sorteio else []
+
+    return render_template(
+        "partida.html",
+        username=session["username"],
+        modo=partida_config["modo"],
+        formacao=partida_config["formacao"],
+        estilo=partida_config["estilo"],
+        sorteio=sorteio,
+        posicoes=posicoes,
+        linhas_campo=linhas_campo,
+        jogadores=jogadores,
+        proxima=proxima,
+        proxima_nome=POSICOES_NOMES.get(proxima, proxima) if proxima else None,
+        completo=completo,
+    )
 
 
 @app.route("/logout")
-def logout(): session.clear(); return redirect(url_for("login"))
+def logout():
+    session.clear()
+    return redirect(url_for("login"))
 
 
-with app.app_context(): init_db()
+with app.app_context():
+    init_db()
 
-if __name__ == "__main__": app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=True)
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=True)
