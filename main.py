@@ -21,6 +21,24 @@ COPAS = [
     "Copa 2014", "Copa 2018", "Copa 2022"
 ]
 
+FORMACOES = {
+    "4-3-3": ["GOL", "LE", "ZAG", "ZAG", "LD", "MC", "MEI", "MC", "PE", "CA", "PD"],
+    "4-4-2": ["GOL", "LE", "ZAG", "ZAG", "LD", "ME", "MC", "MC", "MD", "CA", "CA"],
+    "4-2-3-1": ["GOL", "LE", "ZAG", "ZAG", "LD", "VOL", "VOL", "PE", "MEI", "PD", "CA"],
+    "4-2-4": ["GOL", "LE", "ZAG", "ZAG", "LD", "VOL", "VOL", "PE", "CA", "CA", "PD"],
+    "3-5-2": ["GOL", "ZAG", "ZAG", "ZAG", "ALA", "MC", "MEI", "MC", "ALA", "CA", "CA"],
+    "5-3-2": ["GOL", "LE", "ZAG", "ZAG", "ZAG", "LD", "MC", "MEI", "MC", "CA", "CA"],
+    "4-5-1": ["GOL", "LE", "ZAG", "ZAG", "LD", "ME", "MC", "MEI", "MC", "MD", "CA"],
+    "3-4-3": ["GOL", "ZAG", "ZAG", "ZAG", "ME", "MC", "MC", "MD", "PE", "CA", "PD"],
+}
+
+POSICOES_NOMES = {
+    "GOL": "Goleiro", "LE": "Lateral esquerdo", "LD": "Lateral direito",
+    "ZAG": "Zagueiro", "VOL": "Volante", "MC": "Meio-campista",
+    "MEI": "Meia", "ME": "Meia esquerdo", "MD": "Meia direito",
+    "ALA": "Ala", "PE": "Ponta esquerda", "PD": "Ponta direita", "CA": "Centroavante"
+}
+
 
 def get_db():
     if "db" not in g:
@@ -61,6 +79,43 @@ def login_required(view):
     return wrapped_view
 
 
+def jogadores_da_rodada(selecao, posicao):
+    nome = POSICOES_NOMES.get(posicao, posicao)
+    return [
+        f"{selecao} — {nome} 01",
+        f"{selecao} — {nome} 02",
+        f"{selecao} — {nome} 03",
+        f"{selecao} — {nome} 04",
+        f"{selecao} — {nome} 05",
+        f"{selecao} — {nome} 06",
+    ]
+
+
+def montar_posicoes(formacao, escolhidos):
+    posicoes = FORMACOES.get(formacao, FORMACOES["4-3-3"])
+    resultado = []
+    contagem = {}
+    for posicao in posicoes:
+        contagem[posicao] = contagem.get(posicao, 0) + 1
+        chave = f"{posicao}_{contagem[posicao]}"
+        resultado.append({
+            "key": chave,
+            "codigo": posicao,
+            "nome": POSICOES_NOMES.get(posicao, posicao),
+            "jogador": escolhidos.get(chave),
+        })
+    return resultado
+
+
+def proxima_posicao(formacao, escolhidos):
+    for posicao in FORMACOES.get(formacao, FORMACOES["4-3-3"]):
+        usados = sum(1 for chave in escolhidos if chave.startswith(f"{posicao}_"))
+        total = FORMACOES.get(formacao, []).count(posicao)
+        if usados < total:
+            return posicao
+    return None
+
+
 @app.route("/")
 def index():
     if "user_id" in session:
@@ -74,7 +129,6 @@ def register():
         username = request.form.get("username", "").strip()
         password = request.form.get("password", "")
         confirm_password = request.form.get("confirm_password", "")
-
         if not username or not password or not confirm_password:
             flash("Preencha todos os campos.", "error")
         elif len(username) < 3:
@@ -95,7 +149,6 @@ def register():
                 return redirect(url_for("login"))
             except sqlite3.IntegrityError:
                 flash("Esse nome de usuário já está em uso.", "error")
-
     return render_template("cadastro.html")
 
 
@@ -104,10 +157,7 @@ def login():
     if request.method == "POST":
         username = request.form.get("username", "").strip()
         password = request.form.get("password", "")
-        user = get_db().execute(
-            "SELECT * FROM users WHERE username = ?", (username,)
-        ).fetchone()
-
+        user = get_db().execute("SELECT * FROM users WHERE username = ?", (username,)).fetchone()
         if user is None or not check_password_hash(user["password_hash"], password):
             flash("Usuário ou senha incorretos.", "error")
         else:
@@ -115,7 +165,6 @@ def login():
             session["user_id"] = user["id"]
             session["username"] = user["username"]
             return redirect(url_for("dashboard"))
-
     return render_template("login.html")
 
 
@@ -135,8 +184,8 @@ def desafio():
             "estilo": request.form.get("estilo", "equilibrado"),
         }
         session.pop("sorteio", None)
+        session.pop("escolhidos", None)
         return redirect(url_for("partida"))
-
     return render_template("desafio.html")
 
 
@@ -148,13 +197,29 @@ def partida():
         return redirect(url_for("desafio"))
 
     if request.method == "POST":
-        session["sorteio"] = {
-            "dado": random.randint(1, 6),
-            "selecao": random.choice(SELECOES),
-            "copa": random.choice(COPAS),
-        }
+        acao = request.form.get("acao", "sortear")
+        if acao == "sortear":
+            session["sorteio"] = {
+                "dado": random.randint(1, 6),
+                "selecao": random.choice(SELECOES),
+                "copa": random.choice(COPAS),
+            }
+            session.pop("escolhidos", None)
+        elif acao == "escolher" and session.get("sorteio"):
+            escolhidos = dict(session.get("escolhidos", {}))
+            chave = request.form.get("posicao")
+            jogador = request.form.get("jogador")
+            if chave and jogador:
+                escolhidos[chave] = jogador
+                session["escolhidos"] = escolhidos
 
     sorteio = session.get("sorteio")
+    escolhidos = session.get("escolhidos", {})
+    posicoes = montar_posicoes(partida_config["formacao"], escolhidos) if sorteio else []
+    proxima = proxima_posicao(partida_config["formacao"], escolhidos) if sorteio else None
+    jogadores = jogadores_da_rodada(sorteio["selecao"], proxima) if sorteio and proxima else []
+    completo = sorteio is not None and proxima is None
+
     return render_template(
         "partida.html",
         username=session["username"],
@@ -162,6 +227,11 @@ def partida():
         formacao=partida_config["formacao"],
         estilo=partida_config["estilo"],
         sorteio=sorteio,
+        posicoes=posicoes,
+        jogadores=jogadores,
+        proxima=proxima,
+        proxima_nome=POSICOES_NOMES.get(proxima, proxima) if proxima else None,
+        completo=completo,
     )
 
 
