@@ -32,6 +32,17 @@ FORMACOES = {
     "3-4-3": ["GOL", "ZAG", "ZAG", "ZAG", "ME", "MC", "MC", "MD", "PE", "CA", "PD"],
 }
 
+CAMPO_LINHAS = {
+    "4-3-3": [["PE", "CA", "PD"], ["MC", "MEI", "MC"], ["LE", "ZAG", "ZAG", "LD"], ["GOL"]],
+    "4-4-2": [["CA", "CA"], ["ME", "MC", "MC", "MD"], ["LE", "ZAG", "ZAG", "LD"], ["GOL"]],
+    "4-2-3-1": [["CA"], ["PE", "MEI", "PD"], ["VOL", "VOL"], ["LE", "ZAG", "ZAG", "LD"], ["GOL"]],
+    "4-2-4": [["PE", "CA", "CA", "PD"], ["VOL", "VOL"], ["LE", "ZAG", "ZAG", "LD"], ["GOL"]],
+    "3-5-2": [["CA", "CA"], ["ALA", "MC", "MEI", "MC", "ALA"], ["ZAG", "ZAG", "ZAG"], ["GOL"]],
+    "5-3-2": [["CA", "CA"], ["MC", "MEI", "MC"], ["LE", "ZAG", "ZAG", "ZAG", "LD"], ["GOL"]],
+    "4-5-1": [["CA"], ["ME", "MC", "MEI", "MC", "MD"], ["LE", "ZAG", "ZAG", "LD"], ["GOL"]],
+    "3-4-3": [["PE", "CA", "PD"], ["ME", "MC", "MC", "MD"], ["ZAG", "ZAG", "ZAG"], ["GOL"]],
+}
+
 POSICOES_NOMES = {
     "GOL": "Goleiro", "LE": "Lateral esquerdo", "LD": "Lateral direito",
     "ZAG": "Zagueiro", "VOL": "Volante", "MC": "Meio-campista",
@@ -56,16 +67,14 @@ def close_db(_error=None):
 
 def init_db():
     db = get_db()
-    db.execute(
-        """
+    db.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT NOT NULL UNIQUE,
             password_hash TEXT NOT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
-        """
-    )
+    """)
     db.commit()
 
 
@@ -75,27 +84,18 @@ def login_required(view):
         if "user_id" not in session:
             return redirect(url_for("login"))
         return view(**kwargs)
-
     return wrapped_view
 
 
 def jogadores_da_rodada(selecao, posicao):
     nome = POSICOES_NOMES.get(posicao, posicao)
-    return [
-        f"{selecao} — {nome} 01",
-        f"{selecao} — {nome} 02",
-        f"{selecao} — {nome} 03",
-        f"{selecao} — {nome} 04",
-        f"{selecao} — {nome} 05",
-        f"{selecao} — {nome} 06",
-    ]
+    return [f"{selecao} — {nome} 0{i}" for i in range(1, 7)]
 
 
 def montar_posicoes(formacao, escolhidos):
-    posicoes = FORMACOES.get(formacao, FORMACOES["4-3-3"])
     resultado = []
     contagem = {}
-    for posicao in posicoes:
+    for posicao in FORMACOES.get(formacao, FORMACOES["4-3-3"]):
         contagem[posicao] = contagem.get(posicao, 0) + 1
         chave = f"{posicao}_{contagem[posicao]}"
         resultado.append({
@@ -105,6 +105,20 @@ def montar_posicoes(formacao, escolhidos):
             "jogador": escolhidos.get(chave),
         })
     return resultado
+
+
+def montar_linhas_campo(formacao, posicoes):
+    por_codigo = {}
+    for item in posicoes:
+        por_codigo.setdefault(item["codigo"], []).append(item)
+    linhas = []
+    for linha in CAMPO_LINHAS.get(formacao, CAMPO_LINHAS["4-3-3"]):
+        atual = []
+        for codigo in linha:
+            if por_codigo.get(codigo):
+                atual.append(por_codigo[codigo].pop(0))
+        linhas.append(atual)
+    return linhas
 
 
 def proxima_posicao(formacao, escolhidos):
@@ -118,9 +132,7 @@ def proxima_posicao(formacao, escolhidos):
 
 @app.route("/")
 def index():
-    if "user_id" in session:
-        return redirect(url_for("dashboard"))
-    return redirect(url_for("login"))
+    return redirect(url_for("dashboard" if "user_id" in session else "login"))
 
 
 @app.route("/cadastro", methods=("GET", "POST"))
@@ -138,12 +150,9 @@ def register():
         elif password != confirm_password:
             flash("As senhas não coincidem.", "error")
         else:
-            db = get_db()
             try:
-                db.execute(
-                    "INSERT INTO users (username, password_hash) VALUES (?, ?)",
-                    (username, generate_password_hash(password)),
-                )
+                db = get_db()
+                db.execute("INSERT INTO users (username, password_hash) VALUES (?, ?)", (username, generate_password_hash(password)))
                 db.commit()
                 flash("Conta criada. Agora faça login.", "success")
                 return redirect(url_for("login"))
@@ -199,11 +208,7 @@ def partida():
     if request.method == "POST":
         acao = request.form.get("acao", "sortear")
         if acao == "sortear":
-            session["sorteio"] = {
-                "dado": random.randint(1, 6),
-                "selecao": random.choice(SELECOES),
-                "copa": random.choice(COPAS),
-            }
+            session["sorteio"] = {"dado": random.randint(1, 6), "selecao": random.choice(SELECOES), "copa": random.choice(COPAS)}
             session.pop("escolhidos", None)
         elif acao == "escolher" and session.get("sorteio"):
             escolhidos = dict(session.get("escolhidos", {}))
@@ -216,21 +221,16 @@ def partida():
     sorteio = session.get("sorteio")
     escolhidos = session.get("escolhidos", {})
     posicoes = montar_posicoes(partida_config["formacao"], escolhidos) if sorteio else []
+    linhas_campo = montar_linhas_campo(partida_config["formacao"], posicoes) if sorteio else []
     proxima = proxima_posicao(partida_config["formacao"], escolhidos) if sorteio else None
     jogadores = jogadores_da_rodada(sorteio["selecao"], proxima) if sorteio and proxima else []
     completo = sorteio is not None and proxima is None
 
     return render_template(
         "partida.html",
-        username=session["username"],
-        modo=partida_config["modo"],
-        formacao=partida_config["formacao"],
-        estilo=partida_config["estilo"],
-        sorteio=sorteio,
-        posicoes=posicoes,
-        jogadores=jogadores,
-        proxima=proxima,
-        proxima_nome=POSICOES_NOMES.get(proxima, proxima) if proxima else None,
+        username=session["username"], modo=partida_config["modo"], formacao=partida_config["formacao"],
+        estilo=partida_config["estilo"], sorteio=sorteio, posicoes=posicoes, linhas_campo=linhas_campo,
+        jogadores=jogadores, proxima=proxima, proxima_nome=POSICOES_NOMES.get(proxima, proxima) if proxima else None,
         completo=completo,
     )
 
@@ -243,7 +243,6 @@ def logout():
 
 with app.app_context():
     init_db()
-
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=True)
