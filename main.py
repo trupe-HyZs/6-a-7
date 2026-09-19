@@ -127,7 +127,7 @@ def proxima_posicao(formacao, escolhidos):
     return None
 
 
-def preparar_jogadores(elenco, escolhidos, posicoes):
+def preparar_jogadores(elenco, escolhidos, posicoes, selecionado_id=None):
     usados = set(escolhidos.values())
     resultado = []
     for jogador in elenco:
@@ -137,12 +137,13 @@ def preparar_jogadores(elenco, escolhidos, posicoes):
                 opcoes.append({
                     "key": pos["key"],
                     "codigo": pos["codigo"],
-                    "label": pos["codigo"] if pos["codigo"] in ("GOL", "ZAG", "MC", "CA") else pos["codigo"],
+                    "label": pos["codigo"],
                     "ocupada": bool(pos["jogador"]),
                 })
         resultado.append({
             **jogador,
             "escolhido": jogador["id"] in usados,
+            "selecionado": jogador["id"] == selecionado_id,
             "opcoes": opcoes,
             "tem_posicao_livre": any(not opcao["ocupada"] for opcao in opcoes),
         })
@@ -200,6 +201,7 @@ def desafio():
         }
         session.pop("sorteio", None)
         session.pop("escolhidos", None)
+        session.pop("jogador_selecionado", None)
         return redirect(url_for("partida"))
     return render_template("desafio.html")
 
@@ -220,11 +222,21 @@ def partida():
                 "copa": random.choice(COPAS),
             }
             session.pop("escolhidos", None)
+            session.pop("jogador_selecionado", None)
+
+        elif acao == "selecionar_jogador" and session.get("sorteio"):
+            jogador_id = request.form.get("jogador")
+            sorteio = session["sorteio"]
+            elenco = get_elenco(sorteio["selecao"])
+            if any(j["id"] == jogador_id for j in elenco):
+                escolhidos = dict(session.get("escolhidos", {}))
+                if jogador_id not in escolhidos.values():
+                    session["jogador_selecionado"] = jogador_id
 
         elif acao == "escolher" and session.get("sorteio"):
             escolhidos = dict(session.get("escolhidos", {}))
             chave = request.form.get("posicao")
-            jogador_id = request.form.get("jogador")
+            jogador_id = session.get("jogador_selecionado")
             sorteio = session["sorteio"]
             elenco = get_elenco(sorteio["selecao"])
             posicoes = montar_posicoes(partida_config["formacao"], escolhidos)
@@ -235,15 +247,18 @@ def partida():
             if jogador and posicao and not posicao["jogador"] and not jogador_ja_escolhido and posicao["codigo"] in jogador["posicoes"]:
                 escolhidos[chave] = jogador_id
                 session["escolhidos"] = escolhidos
+                session.pop("jogador_selecionado", None)
 
     sorteio = session.get("sorteio")
     escolhidos = session.get("escolhidos", {})
+    selecionado_id = session.get("jogador_selecionado")
     posicoes = montar_posicoes(partida_config["formacao"], escolhidos) if sorteio else []
     linhas_campo = montar_linhas_campo(partida_config["formacao"], posicoes) if sorteio else []
     proxima = proxima_posicao(partida_config["formacao"], escolhidos) if sorteio else None
     completo = sorteio is not None and proxima is None
     elenco = get_elenco(sorteio["selecao"]) if sorteio else []
-    jogadores = preparar_jogadores(elenco, escolhidos, posicoes) if sorteio else []
+    jogadores = preparar_jogadores(elenco, escolhidos, posicoes, selecionado_id) if sorteio else []
+    jogador_selecionado = next((j for j in jogadores if j["id"] == selecionado_id), None)
 
     return render_template(
         "partida.html",
@@ -255,6 +270,7 @@ def partida():
         posicoes=posicoes,
         linhas_campo=linhas_campo,
         jogadores=jogadores,
+        jogador_selecionado=jogador_selecionado,
         proxima=proxima,
         proxima_nome=POSICOES_NOMES.get(proxima, proxima) if proxima else None,
         completo=completo,
@@ -269,6 +285,7 @@ def logout():
 
 with app.app_context():
     init_db()
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=True)
