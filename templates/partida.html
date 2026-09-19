@@ -14,62 +14,88 @@
 
   <main class="game-shell match-shell">
     <p class="eyebrow">PARTIDA</p>
-    <h1>Role o dado.</h1>
-    <p class="subtitle">Sorteie uma seleção e uma Copa do Mundo para começar a montar seu time.</p>
+    <h1>Monte seu time.</h1>
+    <p class="subtitle">{{ sorteio.selecao if sorteio else 'Role o dado' }}{% if sorteio %} · {{ sorteio.copa }}{% endif %}</p>
 
     <section class="match-preview">
-      <div>
-        <span class="match-label">MODO</span>
-        <strong>{{ modo|title }}</strong>
-      </div>
-      <div>
-        <span class="match-label">FORMAÇÃO</span>
-        <strong>{{ formacao }}</strong>
-      </div>
-      <div>
-        <span class="match-label">ESTILO</span>
-        <strong>{{ estilo|title }}</strong>
-      </div>
+      <div><span class="match-label">MODO</span><strong>{{ modo|title }}</strong></div>
+      <div><span class="match-label">FORMAÇÃO</span><strong>{{ formacao }}</strong></div>
+      <div><span class="match-label">ESTILO</span><strong>{{ estilo|title }}</strong></div>
     </section>
 
-    <section class="draw-layout">
-      <div class="draw-card">
-        {% if sorteio %}
-          <div class="draw-result-label">SORTEIO REALIZADO</div>
-          <div class="dice-face">{{ sorteio.dado }}</div>
-          <div class="draw-result">
-            <span>SELEÇÃO</span>
-            <strong>{{ sorteio.selecao }}</strong>
-            <span>COPA</span>
-            <strong>{{ sorteio.copa }}</strong>
-          </div>
-        {% else %}
+    {% if not sorteio %}
+      <section class="draw-layout">
+        <div class="draw-card">
           <div class="draw-empty">
             <div class="dice-face">?</div>
             <h2>Pronto para sortear?</h2>
             <p>Role o dado para descobrir a seleção e a Copa que vão entrar nesta rodada.</p>
           </div>
-        {% endif %}
-
-        <form method="post">
-          <button class="primary-button roll-button" type="submit">
-            {% if sorteio %}ROLAR NOVAMENTE{% else %}ROLAR O DADO{% endif %} →
-          </button>
-        </form>
-      </div>
-
-      <div class="draw-info">
-        <span class="setup-number">01</span>
-        <h2>Monte sua seleção</h2>
-        <p>O sorteio define o universo de jogadores desta rodada. Depois dele, a próxima etapa será escolher os jogadores para preencher a formação.</p>
-        {% if sorteio %}
-          <div class="selected-universe">
-            <span>{{ sorteio.selecao }}</span>
-            <span>{{ sorteio.copa }}</span>
+          <form method="post">
+            <input type="hidden" name="acao" value="sortear">
+            <button class="primary-button roll-button" type="submit">ROLAR O DADO →</button>
+          </form>
+        </div>
+        <div class="draw-info">
+          <span class="setup-number">01</span>
+          <h2>Monte sua seleção</h2>
+          <p>O sorteio define o universo de jogadores desta rodada. Depois dele, você vai preencher a formação.</p>
+        </div>
+      </section>
+    {% else %}
+      <section class="team-builder">
+        <div class="field-panel">
+          <div class="field-head">
+            <div><span class="match-label">SELEÇÃO</span><strong>{{ sorteio.selecao }}</strong></div>
+            <div><span class="match-label">COPA</span><strong>{{ sorteio.copa }}</strong></div>
           </div>
-        {% endif %}
-      </div>
-    </section>
+
+          <div class="football-field">
+            <div class="field-lines"></div>
+            {% for linha in linhas_campo %}
+              <div class="field-row row-{{ loop.index }} count-{{ linha|length }}">
+                {% for pos in linha %}
+                  <div class="player-slot {% if pos.jogador %}filled{% endif %}">
+                    <span class="slot-circle">{{ pos.codigo }}</span>
+                    <span class="slot-name">{{ pos.jogador if pos.jogador else '?' }}</span>
+                  </div>
+                {% endfor %}
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <aside class="player-panel">
+          <span class="setup-number">02</span>
+          {% if completo %}
+            <h2>Time completo.</h2>
+            <p>Os 11 jogadores foram escolhidos.</p>
+          {% else %}
+            <h2>Escolha um jogador</h2>
+            <p class="position-target">Próxima posição: <strong>{{ proxima_nome }}</strong></p>
+            <div class="player-list">
+              {% for jogador in jogadores %}
+                <form method="post">
+                  <input type="hidden" name="acao" value="escolher">
+                  <input type="hidden" name="posicao" value="{{ proxima }}_{{ (posicoes|selectattr('codigo', 'equalto', proxima)|list|length) - (jogadores|length) + loop.index }}">
+                  <input type="hidden" name="jogador" value="{{ jogador }}">
+                  <button class="player-option" type="submit">
+                    <span class="player-number">#{{ loop.index }}</span>
+                    <span><strong>{{ jogador }}</strong><small>{{ proxima_nome }}</small></span>
+                    <span class="player-arrow">?</span>
+                  </button>
+                </form>
+              {% endfor %}
+            </div>
+          {% endif %}
+
+          <form method="post" class="reroll-form">
+            <input type="hidden" name="acao" value="sortear">
+            <button class="secondary-button" type="submit">ROLAR NOVAMENTE</button>
+          </form>
+        </aside>
+      </section>
+    {% endif %}
 
     <a class="secondary-button mode-link" href="{{ url_for('desafio') }}">← ALTERAR CONFIGURAÇÃO</a>
   </main>
