@@ -1,4 +1,5 @@
 import os
+import random
 import sqlite3
 from functools import wraps
 from flask import Flask, flash, g, redirect, render_template, request, session, url_for
@@ -9,6 +10,16 @@ DATABASE = os.path.join(BASE_DIR, "data.db")
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-6a7-secret-key")
+
+SELECOES = [
+    "Brasil", "Argentina", "França", "Alemanha", "Espanha", "Itália",
+    "Portugal", "Inglaterra", "Uruguai", "Holanda", "Croácia", "Bélgica"
+]
+COPAS = [
+    "Copa 1950", "Copa 1954", "Copa 1958", "Copa 1962", "Copa 1970",
+    "Copa 1982", "Copa 1994", "Copa 2002", "Copa 2006", "Copa 2010",
+    "Copa 2014", "Copa 2018", "Copa 2022"
+]
 
 
 def get_db():
@@ -118,18 +129,40 @@ def dashboard():
 @login_required
 def desafio():
     if request.method == "POST":
-        modo = request.form.get("modo", "normal")
-        formacao = request.form.get("formacao", "4-3-3")
-        estilo = request.form.get("estilo", "equilibrado")
-        return render_template(
-            "partida.html",
-            username=session["username"],
-            modo=modo,
-            formacao=formacao,
-            estilo=estilo,
-        )
+        session["partida"] = {
+            "modo": request.form.get("modo", "normal"),
+            "formacao": request.form.get("formacao", "4-3-3"),
+            "estilo": request.form.get("estilo", "equilibrado"),
+        }
+        session.pop("sorteio", None)
+        return redirect(url_for("partida"))
 
     return render_template("desafio.html")
+
+
+@app.route("/partida", methods=("GET", "POST"))
+@login_required
+def partida():
+    partida_config = session.get("partida")
+    if not partida_config:
+        return redirect(url_for("desafio"))
+
+    if request.method == "POST":
+        session["sorteio"] = {
+            "dado": random.randint(1, 6),
+            "selecao": random.choice(SELECOES),
+            "copa": random.choice(COPAS),
+        }
+
+    sorteio = session.get("sorteio")
+    return render_template(
+        "partida.html",
+        username=session["username"],
+        modo=partida_config["modo"],
+        formacao=partida_config["formacao"],
+        estilo=partida_config["estilo"],
+        sorteio=sorteio,
+    )
 
 
 @app.route("/logout")
