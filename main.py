@@ -77,19 +77,27 @@ def partida():
   acao=request.form.get('acao','sortear')
   if acao=='sortear':
    tinha=bool(session.get('sorteio'))
-   if not tinha or session.get('rolagens_manuais',0)<3:session['sorteio']=sorteio_novo();session['rolagens_manuais']=session.get('rolagens_manuais',0)+(1 if tinha else 0);session['pode_rerolar']=True;session.pop('jogador_selecionado',None)
-  elif acao in ('outra_selecao','outra_copa') and session.get('sorteio') and session.get('rolagens_manuais',0)<3:session['sorteio']=trocar('selecao' if acao=='outra_selecao' else 'copa');session['rolagens_manuais']+=1;session['pode_rerolar']=True;session.pop('jogador_selecionado',None)
+   if not tinha or session.get('rolagens_manuais',0)<3:session['sorteio']=sorteio_novo();session['rolagens_manuais']=session.get('rolagens_manuais',0)+(1 if tinha else 0);session['pode_rerolar']=False;session.pop('jogador_selecionado',None)
+  elif acao in ('outra_selecao','outra_copa') and session.get('sorteio') and session.get('rolagens_manuais',0)<3:session['sorteio']=trocar('selecao' if acao=='outra_selecao' else 'copa');session['rolagens_manuais']+=1;session['pode_rerolar']=False;session.pop('jogador_selecionado',None)
   elif acao=='selecionar_jogador' and session.get('sorteio'):
    jid=request.form.get('jogador');elenco=get_elenco(session['sorteio']['selecao']);e=dict(session.get('escolhidos',{}))
-   if any(j['id']==jid for j in elenco) and jid not in e.values():session['jogador_selecionado']=jid;session['pode_rerolar']=True
+   if any(j['id']==jid for j in elenco) and jid not in e.values():session['jogador_selecionado']=jid;session['pode_rerolar']=False
   elif acao=='escolher' and session.get('sorteio'):
    e=dict(session.get('escolhidos',{}));ch=request.form.get('posicao');jid=session.get('jogador_selecionado');elenco=get_elenco(session['sorteio']['selecao']);p=montar_posicoes(cfg['formacao'],e);j=next((x for x in elenco if x['id']==jid),None);pos=next((x for x in p if x['key']==ch),None)
    if j and pos and not pos['jogador'] and jid not in e.values() and pos['codigo'] in j['posicoes']:e[ch]=jid;session['escolhidos']=e;session.pop('jogador_selecionado',None);session['pode_rerolar']=True
  sorteio=session.get('sorteio');e=session.get('escolhidos',{});sel=session.get('jogador_selecionado');p=montar_posicoes(cfg['formacao'],e) if sorteio else [];linhas=montar_linhas_campo(cfg['formacao'],p) if sorteio else [];elenco=get_elenco(sorteio['selecao']) if sorteio else [];jogadores=preparar_jogadores(elenco,e,p,sel) if sorteio else [];js=next((j for j in jogadores if j['id']==sel),None)
  html=render_template('partida.html',username=session['username'],modo=cfg['modo'],formacao=cfg['formacao'],estilo=cfg['estilo'],sorteio=sorteio,posicoes=p,linhas_campo=linhas,jogadores=jogadores,jogador_selecionado=js,completo=len(e)>=11,rolagens_manuais=session.get('rolagens_manuais',0),pode_rerolar=session.get('pode_rerolar',False))
- html=html.replace('</style>','''</style><style>.reroll-main{display:none}.reroll-grid form:nth-child(2),.reroll-grid form:nth-child(3){display:none}.phase-selection .reroll-main{display:none}.phase-selection .reroll-grid form:nth-child(2),.phase-selection .reroll-grid form:nth-child(3){display:block}.phase-reroll .reroll-main{display:block}.phase-reroll .reroll-grid form:nth-child(2),.phase-reroll .reroll-grid form:nth-child(3){display:none}</style>''')
- phase='phase-selection' if js else ('phase-reroll' if len(e)>0 else 'phase-selection')
- html=html.replace('<body class="game-page">',f'<body class="game-page {phase}" id="partida-page">')
+ css='''<style>.reroll-grid form:nth-child(2),.reroll-grid form:nth-child(3){display:none}.phase-picking .reroll-selection{display:grid}.phase-picking .reroll-main-wrap{display:none}.phase-ready .reroll-selection{display:none}.phase-ready .reroll-main-wrap{display:block}</style>'''
+ html=html.replace('</style>',css+'</style>',1)
+ if sorteio and not len(e)>=11:
+  if js:
+   controls='''<div class="reroll phase-picking"><small>Não curtiu? Re-sorteie · %d restantes</small><div class="reroll-grid"><div class="reroll-main-wrap"></div><form method="post"><input type="hidden" name="acao" value="outra_selecao"><button type="submit">OUTRA SELEÇÃO</button></form><form method="post"><input type="hidden" name="acao" value="outra_copa"><button type="submit">OUTRA COPA</button></form></div></div>'''%(3-session.get('rolagens_manuais',0))
+  elif session.get('pode_rerolar'):
+   controls='''<div class="reroll phase-ready"><small>Não curtiu? Re-sorteie · %d restantes</small><div class="reroll-grid"><form class="reroll-main-wrap" method="post"><input type="hidden" name="acao" value="sortear"><button class="reroll-main" type="submit">↻ ROLAR NOVAMENTE</button></form></div></div>'''%(3-session.get('rolagens_manuais',0))
+  else:controls=''
+  marker='</div></aside>'
+  if marker in html:html=html.replace(marker,controls+marker,1)
+ html=html.replace('</body>','''<script>function filterPlayers(v){v=v.toLowerCase().trim();document.querySelectorAll('.player-item').forEach(i=>i.style.display=i.dataset.name.includes(v)?'':'none')}</script></body>''')
  return html
 @app.route('/logout')
 def logout():session.clear();return redirect(url_for('login'))
