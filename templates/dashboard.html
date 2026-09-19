@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>6 a 7 — Dashboard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="dashboard-page">
+  <header class="topbar">
+    <div class="brand-mark small">6<span>—</span>7</div>
+    <a class="logout" href="{{ url_for('logout') }}">SAIR</a>
+  </header>
+
+  <main class="dashboard">
+    <p class="eyebrow">CENTRAL DO JOGADOR</p>
+    <h1>Olá, {{ username }}.</h1>
+    <p class="subtitle">Escolha como você quer jogar.</p>
+
+    <section class="mode-grid">
+      <article class="mode-card">
+        <div class="mode-number">01</div>
+        <h2>Desafio</h2>
+        <p>Monte sua seleção e encare o desafio.</p>
+        <button class="secondary-button" type="button" disabled>EM BREVE</button>
+      </article>
+
+      <article class="mode-card">
+        <div class="mode-number">02</div>
+        <h2>Jogar com amigos</h2>
+        <p>Crie ou entre em uma partida com outros jogadores.</p>
+        <button class="secondary-button" type="button" disabled>EM BREVE</button>
+      </article>
+    </section>
+  </main>
+</body>
+</html>
