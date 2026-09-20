@@ -6,33 +6,120 @@
 <title>6 a 7 — Monte seu time</title>
 <link rel="stylesheet" href="{{ url_for('static',filename='style.css') }}">
 <style>
-:root{--paper:#f3ecd8;--ink:#171715;--white:#fffdf7;--muted:#777164;--red:#ef452f;--gold:#c9a33a;--green:#287344;--green2:#205c38;--line:#d7cfbd}
-*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font-family:Arial,Helvetica,sans-serif}.wrap{max-width:1280px;margin:auto;padding:22px}.top{display:flex;justify-content:space-between;align-items:end;border-bottom:2px solid var(--ink);padding:8px 0 16px;margin-bottom:14px}.logo{font-size:38px;font-weight:1000;letter-spacing:-4px}.logo b{color:var(--red)}.meta{display:flex;gap:25px}.label{display:block;font-size:9px;font-weight:900;letter-spacing:2px;color:var(--muted)}.value{font-size:17px;font-weight:950}.hero{display:grid;grid-template-columns:1fr 220px;gap:10px;margin-bottom:10px}.card,.panel{background:var(--white);border:1px solid #d5cdbd;box-shadow:6px 6px 0 rgba(201,163,58,.22)}.card{padding:16px}.big{font-size:28px;font-weight:1000;letter-spacing:-1px;margin-top:5px}.bar{height:7px;background:#e5dece;margin-top:10px}.bar i{display:block;height:100%;background:var(--red);width:{{ ((posicoes|selectattr('jogador')|list|length)/11*100)|round }}%}.layout{display:grid;grid-template-columns:280px minmax(450px,1fr) 270px;gap:10px}.panel{padding:14px;min-height:690px}.panel h2{font-size:16px;margin:0 0 8px}.sub,.hint{font-size:10px;line-height:1.5;color:var(--muted)}.players{display:grid;gap:5px;max-height:570px;overflow:auto}.player{width:100%;border:1px solid #cbc3b3;background:#f8f3e8;padding:9px;display:grid;grid-template-columns:28px 1fr;gap:6px;text-align:left;cursor:pointer}.player:hover{background:var(--ink);color:#fff}.num{color:var(--red);font-weight:1000}.name{font-size:10px;font-weight:900}.positions{grid-column:2;font-size:8px;color:var(--muted);font-weight:800}.player:hover .positions{color:#ddd}.selected{border-left:4px solid var(--red);background:#f8f3e8;padding:15px;margin-top:12px}.selected .name{font-size:22px;display:block;margin-top:3px}.rollbox{border-top:1px solid var(--line);margin-top:16px;padding-top:14px}.btn{width:100%;border:1px solid var(--ink);background:var(--ink);color:#fff;padding:13px;font-size:10px;font-weight:1000;cursor:pointer}.btn.red{background:var(--red);border-color:var(--red)}.btn.light{background:#f8f3e8;color:var(--ink)}.fieldbox{padding:9px;background:var(--white);border:1px solid #d5cdbd;box-shadow:6px 6px 0 rgba(201,163,58,.22)}.field{position:relative;min-height:690px;padding:30px 15px 20px;border:5px solid #e6d9b8;background:repeating-linear-gradient(to bottom,var(--green) 0,var(--green) 68px,var(--green2) 68px,var(--green2) 136px);display:flex;flex-direction:column;justify-content:space-between;overflow:hidden}.field:before{content:"";position:absolute;inset:6%;border:2px solid rgba(255,255,255,.4)}.field:after{content:"";position:absolute;width:105px;height:105px;border:2px solid rgba(255,255,255,.4);border-radius:50%;left:50%;top:50%;transform:translate(-50%,-50%)}.half{position:absolute;left:6%;right:6%;top:50%;border-top:2px solid rgba(255,255,255,.4)}.row{position:relative;z-index:2;display:flex;justify-content:center;gap:clamp(8px,4vw,48px);min-height:88px;align-items:center}.slot{width:82px;text-align:center;color:white}.slot button{border:0;background:transparent;color:white;padding:0;cursor:pointer}.circle{width:48px;height:48px;margin:auto;border-radius:50%;display:grid;place-items:center;border:2px dashed rgba(255,255,255,.8);background:rgba(0,0,0,.12);font-size:10px;font-weight:1000}.slot button:hover .circle{background:white;color:var(--ink);transform:scale(1.07);border-style:solid}.filled .circle{background:white;color:var(--ink);border:2px solid var(--ink)}.slotname{display:block;margin:4px auto 0;background:rgba(0,0,0,.65);padding:3px;max-width:90px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:8px;font-weight:900}.status{padding:11px;background:#f8f3e8;border-left:4px solid var(--gold);font-size:9px;line-height:1.5;margin-bottom:12px}.table{width:100%;border-collapse:collapse;font-size:8px}.table td{padding:6px 3px;border-bottom:1px solid #eee8dc}.table td:last-child{text-align:right;font-weight:900}.actions{display:grid;gap:8px;margin-top:15px}.actions a{display:block;text-align:center;text-decoration:none;padding:11px;border:1px solid var(--ink);color:var(--ink);font-size:9px;font-weight:900}.draw{max-width:700px;margin:80px auto}.draw .card{text-align:center;padding:50px}.draw h1{font-size:48px;letter-spacing:-3px;margin:8px 0}.draw form{margin-top:20px}.draw .btn{max-width:480px}@media(max-width:1050px){.layout{grid-template-columns:260px 1fr}.right{grid-column:1/-1;min-height:auto}}@media(max-width:760px){.wrap{padding:12px}.top{display:block}.meta{margin-top:10px}.hero{grid-template-columns:1fr}.layout{grid-template-columns:1fr}.panel{min-height:auto}.field{min-height:570px;padding:20px 3px}.row{gap:4px}.slot{width:61px}.circle{width:40px;height:40px}.slotname{font-size:7px;max-width:65px}}
+.draft-page{min-height:100vh;background:var(--cream)}
+.draft-shell{max-width:1180px;margin:0 auto;padding:20px 24px 60px}
+.draft-top{display:flex;justify-content:space-between;align-items:end;border-bottom:2px solid var(--black);padding:8px 0 15px}
+.draft-logo{font-size:42px;font-weight:1000;letter-spacing:-5px}.draft-logo b{color:var(--red)}
+.draft-meta{display:flex;gap:24px}.draft-meta span{display:block}.draft-label{font-size:9px;letter-spacing:2px;font-weight:900;color:var(--muted)}.draft-value{font-size:16px;font-weight:900}
+.draft-hero{display:grid;grid-template-columns:1.4fr .6fr;gap:10px;margin:14px 0 10px}.draft-card{background:var(--white);border:1px solid rgba(23,23,21,.15);padding:16px;box-shadow:6px 6px 0 rgba(201,163,58,.25)}
+.draft-card h1{font-size:32px;margin:4px 0 0}.draft-card strong.big{font-size:28px}.draft-progress{height:7px;background:#e5dece;margin-top:10px}.draft-progress i{display:block;height:100%;background:var(--red);width:{{ ((posicoes|selectattr('jogador')|list|length)/11*100)|round }}%}
+.draft-draw{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}.draft-draw .draft-card{min-height:92px}.draft-eyebrow{font-size:9px;letter-spacing:2px;font-weight:900;color:var(--muted)}
+.draft-layout{display:grid;grid-template-columns:285px minmax(440px,1fr) 250px;gap:10px}.draft-panel{background:var(--white);border:1px solid rgba(23,23,21,.15);padding:15px;box-shadow:6px 6px 0 rgba(201,163,58,.25);min-height:650px}.draft-panel h2{font-size:16px;margin:0 0 7px}.draft-sub{font-size:10px;line-height:1.5;color:var(--muted)}
+.draft-players{display:grid;gap:6px;max-height:500px;overflow:auto;margin-top:12px}.draft-player-form{margin:0}.draft-player{width:100%;display:grid;grid-template-columns:30px 1fr 18px;gap:7px;text-align:left;border:1px solid #c9c1ae;background:var(--cream);padding:9px;cursor:pointer}.draft-player:hover{background:var(--black);color:white}.draft-player:disabled{opacity:.45;cursor:not-allowed}.draft-player .number{font-size:10px;font-weight:1000;color:var(--red)}.draft-player strong{font-size:11px}.draft-player small{display:block;margin-top:3px;font-size:8px;color:var(--muted)}.draft-player:hover small{color:#ddd}
+.draft-selected{border-left:4px solid var(--red);background:var(--cream);padding:14px;margin-top:12px}.draft-selected .number{font-size:10px;font-weight:1000;color:var(--red)}.draft-selected .name{display:block;font-size:22px;font-weight:1000;margin-top:4px}.draft-selected small{color:var(--muted)}
+.draft-action{margin-top:18px;padding-top:14px;border-top:1px solid #ddd4c3}.draft-btn{width:100%;border:1px solid var(--black);background:var(--black);color:white;padding:13px;font-size:10px;font-weight:1000;cursor:pointer}.draft-btn.red{background:var(--red);border-color:var(--red)}.draft-btn.light{background:var(--cream);color:var(--black)}
+.draft-field-wrap{background:var(--white);border:1px solid rgba(23,23,21,.15);padding:9px;box-shadow:6px 6px 0 rgba(201,163,58,.25)}
+.draft-field{position:relative;min-height:650px;padding:26px 10px 18px;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;background:repeating-linear-gradient(to bottom,#337f52 0,#337f52 62px,#2d774b 62px,#2d774b 124px);border:5px solid var(--cream-deep)}
+.draft-field:before{content:"";position:absolute;inset:6%;border:2px solid rgba(255,255,255,.42)}.draft-field:after{content:"";position:absolute;width:108px;height:108px;border:2px solid rgba(255,255,255,.42);border-radius:50%;left:50%;top:50%;transform:translate(-50%,-50%)}.draft-half{position:absolute;left:6%;right:6%;top:50%;border-top:2px solid rgba(255,255,255,.42)}
+.draft-row{position:relative;z-index:2;display:flex;justify-content:center;align-items:center;gap:clamp(8px,3vw,38px);min-height:92px}.draft-slot{width:78px;text-align:center;color:white}.draft-slot button{border:0;background:transparent;color:white;padding:0;cursor:pointer}.draft-circle{width:48px;height:48px;margin:auto;border-radius:50%;display:grid;place-items:center;border:2px dashed rgba(255,255,255,.8);background:rgba(0,0,0,.12);font-size:10px;font-weight:1000}.draft-slot button:hover .draft-circle{background:white;color:var(--black);border-style:solid;transform:scale(1.06)}.draft-slot.filled .draft-circle{background:var(--white);color:var(--black);border:2px solid var(--black)}.draft-name{display:block;margin:4px auto 0;max-width:88px;background:rgba(0,0,0,.7);padding:3px;font-size:8px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.draft-num{display:block;font-size:7px;font-weight:900;opacity:.9}
+.draft-status{padding:11px;background:var(--cream);border-left:4px solid var(--gold);font-size:9px;line-height:1.5;margin-bottom:14px}.draft-table{width:100%;border-collapse:collapse;font-size:8px}.draft-table td{padding:6px 3px;border-bottom:1px solid #eee8dc}.draft-table td:last-child{text-align:right;font-weight:900}.draft-actions{display:grid;gap:8px;margin-top:16px}.draft-actions a{display:block;text-align:center;text-decoration:none;padding:11px;border:1px solid var(--black);font-size:9px;font-weight:900}
+.draft-empty{max-width:720px;margin:75px auto}.draft-empty .draft-card{text-align:center;padding:48px}.draft-empty h1{font-size:48px;margin:8px 0}.draft-empty p{color:var(--muted);line-height:1.5}.draft-empty form{margin-top:20px}
+@media(max-width:1080px){.draft-layout{grid-template-columns:260px 1fr}.draft-right{grid-column:1/-1;min-height:auto}}
+@media(max-width:760px){.draft-shell{padding:12px}.draft-top{display:block}.draft-meta{margin-top:10px}.draft-hero,.draft-draw{grid-template-columns:1fr}.draft-layout{grid-template-columns:1fr}.draft-panel{min-height:auto}.draft-field{min-height:570px;padding:18px 3px}.draft-row{gap:4px}.draft-slot{width:60px}.draft-circle{width:40px;height:40px}.draft-name{font-size:7px;max-width:65px}}
 </style>
 </head>
-<body>
-<main class="wrap">
-<header class="top"><div class="logo">6<b>a</b>7</div><div class="meta"><div><span class="label">JOGADOR</span><span class="value">{{ username }}</span></div><div><span class="label">FORMAÇÃO</span><span class="value">{{ formacao }}</span></div></div></header>
+<body class="draft-page">
+<main class="draft-shell">
+<header class="draft-top">
+  <div class="draft-logo">6<b>a</b>7</div>
+  <div class="draft-meta">
+    <div><span class="draft-label">JOGADOR</span><span class="draft-value">{{ username }}</span></div>
+    <div><span class="draft-label">FORMAÇÃO</span><span class="draft-value">{{ formacao }}</span></div>
+  </div>
+</header>
+
 {% if not sorteio and not completo %}
-<section class="draw"><div class="card"><span class="label">NOVA RODADA</span><h1>Monte seu XI.</h1><p class="hint">Role o dado, escolha um único jogador da seleção sorteada, coloque-o no campo e só então role novamente.</p><form method="post"><input type="hidden" name="acao" value="sortear"><button class="btn" type="submit">ROLAR O DADO →</button></form></div></section>
+<section class="draft-empty">
+  <div class="draft-card">
+    <span class="draft-eyebrow">NOVA RODADA</span>
+    <h1>Monte seu XI.</h1>
+    <p>Role o dado, receba uma seleção, escolha <strong>um único jogador</strong>, coloque-o numa posição compatível e só então role novamente.</p>
+    <form method="post"><input type="hidden" name="acao" value="sortear"><button class="draft-btn" type="submit">ROLAR O DADO →</button></form>
+  </div>
+</section>
 {% else %}
-<section class="hero"><div class="card"><span class="label">SUA ESCALAÇÃO</span><div class="big">{{ posicoes|selectattr('jogador')|list|length }}/11</div><div class="bar"><i></i></div></div><div class="card"><span class="label">SELEÇÕES USADAS</span><div class="big">{{ selecoes_usadas|length }}</div></div></section>
-{% if sorteio %}<section class="hero"><div class="card"><span class="label">SELEÇÃO SORTEADA</span><div class="big">{{ sorteio.selecao }}</div></div><div class="card"><span class="label">COPA</span><div class="big" style="font-size:20px">{{ sorteio.copa }}</div></div></section>{% endif %}
-<section class="layout">
-<aside class="panel">
-{% if sorteio and not jogador_selecionado %}
-<h2>ESCOLHA UM JOGADOR</h2><p class="sub">A seleção sorteada é <strong>{{ sorteio.selecao }}</strong>. Escolha somente um.</p>
-<div class="players">{% for j in jogadores %}<form method="post"><input type="hidden" name="acao" value="selecionar_jogador"><input type="hidden" name="jogador" value="{{ j.id }}"><button class="player" type="submit" {% if j.escolhido %}disabled{% endif %}><span class="num">{{ '%02d'|format(j.numero) }}</span><span class="name">{{ j.nome }}</span><span class="positions">{{ j.posicoes|join(' · ') }}</span></button></form>{% endfor %}</div>
-{% elif jogador_selecionado %}
-<h2>JOGADOR ESCOLHIDO</h2><div class="selected"><span class="num">Nº {{ '%02d'|format(jogador_selecionado.numero) }}</span><span class="name">{{ jogador_selecionado.nome }}</span><div class="hint">{{ sorteio.selecao }} · {{ jogador_selecionado.posicoes|join(' · ') }}</div></div><p class="sub">Agora clique no círculo compatível no campo. O nome e o número ficarão salvos depois da confirmação.</p>
-{% elif ultimo_jogador %}
-<h2>ÚLTIMO JOGADOR</h2><div class="selected"><span class="num">Nº {{ '%02d'|format(ultimo_jogador.numero) }}</span><span class="name">{{ ultimo_jogador.nome }}</span><div class="hint">{{ ultimo_jogador.selecao }}</div></div>
+<section class="draft-hero">
+  <div class="draft-card"><span class="draft-eyebrow">SUA ESCALAÇÃO</span><h1><strong class="big">{{ posicoes|selectattr('jogador')|list|length }}/11</strong></h1><div class="draft-progress"><i></i></div></div>
+  <div class="draft-card"><span class="draft-eyebrow">SELEÇÕES USADAS</span><h1><strong class="big">{{ selecoes_usadas|length }}</strong></h1></div>
+</section>
+{% if sorteio %}
+<section class="draft-draw">
+  <div class="draft-card"><span class="draft-eyebrow">SELEÇÃO SORTEADA</span><h1>{{ sorteio.selecao }}</h1></div>
+  <div class="draft-card"><span class="draft-eyebrow">COPA</span><h1 style="font-size:24px">{{ sorteio.copa }}</h1></div>
+</section>
 {% endif %}
-{% if sorteio and jogador_selecionado %}<div class="rollbox"><strong>PRONTO PARA A PRÓXIMA?</strong><p class="hint">O jogador escolhido ainda precisa ser colocado no campo.</p></div>{% elif not sorteio and not completo %}<div class="rollbox"><strong>PRÓXIMA SELEÇÃO</strong><form method="post"><input type="hidden" name="acao" value="sortear"><button class="btn" type="submit">↻ ROLAR NOVAMENTE</button></form></div>{% endif %}
-{% if completo %}<div class="rollbox"><strong>XI COMPLETO</strong><p class="hint">Todos os jogadores foram posicionados.</p></div>{% endif %}
+
+<section class="draft-layout">
+<aside class="draft-panel">
+{% if sorteio and not jogador_selecionado %}
+  <h2>ESCOLHA UM JOGADOR</h2>
+  <p class="draft-sub">Você recebeu <strong>{{ sorteio.selecao }}</strong>. Escolha somente um jogador desta seleção.</p>
+  <div class="draft-players">
+  {% for j in jogadores %}
+    <form method="post" class="draft-player-form">
+      <input type="hidden" name="acao" value="selecionar_jogador"><input type="hidden" name="jogador" value="{{ j.id }}">
+      <button class="draft-player" type="submit" {% if j.escolhido %}disabled{% endif %}>
+        <span class="number">{{ '%02d'|format(j.numero) }}</span><span><strong>{{ j.nome }}</strong><small>{{ j.posicoes|join(' · ') }}</small></span><span>→</span>
+      </button>
+    </form>
+  {% endfor %}
+  </div>
+{% elif jogador_selecionado %}
+  <h2>JOGADOR ESCOLHIDO</h2>
+  <div class="draft-selected"><span class="number">Nº {{ '%02d'|format(jogador_selecionado.numero) }}</span><span class="name">{{ jogador_selecionado.nome }}</span><small>{{ sorteio.selecao }} · {{ jogador_selecionado.posicoes|join(' · ') }}</small></div>
+  <p class="draft-sub">Agora clique no círculo compatível no campo. O jogador só entra no XI depois que uma posição for confirmada.</p>
+{% elif ultimo_jogador %}
+  <h2>ÚLTIMO JOGADOR</h2>
+  <div class="draft-selected"><span class="number">Nº {{ '%02d'|format(ultimo_jogador.numero) }}</span><span class="name">{{ ultimo_jogador.nome }}</span><small>{{ ultimo_jogador.selecao }}</small></div>
+{% endif %}
+
+{% if not sorteio and not completo %}
+<div class="draft-action"><strong>PRÓXIMA SELEÇÃO</strong><p class="draft-sub">O jogador anterior já foi colocado. Agora avance para outra seleção.</p><form method="post"><input type="hidden" name="acao" value="sortear"><button class="draft-btn" type="submit">↻ ROLAR NOVAMENTE</button></form></div>
+{% elif completo %}
+<div class="draft-action"><strong>XI COMPLETO</strong><p class="draft-sub">Os 11 jogadores foram posicionados.</p></div>
+{% endif %}
 </aside>
-<div class="fieldbox"><div class="field"><div class="half"></div>{% for linha in linhas_campo %}<div class="row">{% for pos in linha %}{% if pos.jogador %}<div class="slot filled"><span class="circle">{{ '%02d'|format(pos.jogador.numero) }}</span><span class="slotname">{{ pos.jogador.nome }}</span></div>{% elif jogador_selecionado and pos.codigo in jogador_selecionado.posicoes %}<form method="post" class="slot"><input type="hidden" name="acao" value="escolher"><input type="hidden" name="posicao" value="{{ pos.key }}"><button type="submit" title="Colocar {{ jogador_selecionado.nome }} em {{ pos.codigo }}"><span class="circle">{{ pos.codigo }}</span><span class="slotname">COLOCAR</span></button></form>{% else %}<div class="slot"><span class="circle">{{ pos.codigo }}</span><span class="slotname">{{ pos.codigo }}</span></div>{% endif %}{% endfor %}</div>{% endfor %}</div></div>
-<aside class="panel right"><div class="status">{% if jogador_selecionado %}<strong>POSICIONE AGORA</strong><br>As posições compatíveis estão clicáveis no campo.{% elif completo %}<strong>TIME PRONTO</strong><br>Você pode simular a partida.{% elif sorteio %}<strong>ESCOLHA UM</strong><br>Selecione exatamente um jogador.{% else %}<strong>PRÓXIMA SELEÇÃO</strong><br>Role novamente quando terminar esta escolha.{% endif %}</div><h2>ESCALAÇÃO</h2><table class="table">{% for pos in posicoes %}<tr><td>{{ pos.codigo }}</td><td>{% if pos.jogador %}{{ pos.jogador.nome }}{% else %}—{% endif %}</td></tr>{% endfor %}</table><div class="actions">{% if completo %}<form method="post"><input type="hidden" name="acao" value="simular"><button class="btn red" type="submit">SIMULAR PARTIDA →</button></form>{% endif %}<a href="{{ url_for('desafio') }}">RECOMEÇAR</a></div></aside>
+
+<div class="draft-field-wrap"><div class="draft-field"><div class="draft-half"></div>
+{% for linha in linhas_campo %}
+<div class="draft-row">
+{% for pos in linha %}
+  {% if pos.jogador %}
+    <div class="draft-slot filled"><span class="draft-circle">{{ '%02d'|format(pos.jogador.numero) }}</span><span class="draft-name">{{ pos.jogador.nome }}</span><span class="draft-num">{{ pos.jogador.selecao }}</span></div>
+  {% elif jogador_selecionado and pos.codigo in jogador_selecionado.posicoes %}
+    <form method="post" class="draft-slot"><input type="hidden" name="acao" value="escolher"><input type="hidden" name="posicao" value="{{ pos.key }}"><button type="submit" title="Colocar {{ jogador_selecionado.nome }} em {{ pos.codigo }}"><span class="draft-circle">{{ pos.codigo }}</span><span class="draft-name">COLOCAR</span></button></form>
+  {% else %}
+    <div class="draft-slot"><span class="draft-circle">{{ pos.codigo }}</span><span class="draft-name">{{ pos.codigo }}</span></div>
+  {% endif %}
+{% endfor %}
+</div>
+{% endfor %}
+</div></div>
+
+<aside class="draft-panel draft-right">
+<div class="draft-status">
+{% if jogador_selecionado %}<strong>POSICIONE AGORA</strong><br>As posições compatíveis estão destacadas no campo.
+{% elif completo %}<strong>TIME PRONTO</strong><br>Simule a partida para gerar o resultado.
+{% elif sorteio %}<strong>ESCOLHA UM</strong><br>Selecione exatamente um jogador.
+{% else %}<strong>PRÓXIMA SELEÇÃO</strong><br>Role novamente para continuar o draft.{% endif %}
+</div>
+<h2>ESCALAÇÃO</h2>
+<table class="draft-table">{% for pos in posicoes %}<tr><td>{{ pos.codigo }}</td><td>{% if pos.jogador %}{{ pos.jogador.nome }}{% else %}—{% endif %}</td></tr>{% endfor %}</table>
+<div class="draft-actions">
+{% if completo %}<form method="post"><input type="hidden" name="acao" value="simular"><button class="draft-btn red" type="submit">SIMULAR PARTIDA →</button></form>{% endif %}
+<a href="{{ url_for('desafio') }}">RECOMEÇAR</a>
+</div>
+</aside>
 </section>
 {% endif %}
 </main>
